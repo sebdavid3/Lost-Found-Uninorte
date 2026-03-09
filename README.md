@@ -66,12 +66,17 @@ cp .env.example .env
 npx prisma generate
 ```
 
-4. Llenar la base de datos con informacion semilla (Users y Objects de prueba)
+4. Aplicar las migraciones sobre PostgreSQL
+```bash
+npx prisma migrate deploy
+```
+
+5. Llenar la base de datos con informacion semilla (Users y Objects de prueba)
 ```bash
 npx ts-node prisma/seed.ts
 ```
 
-5. Levantar el entorno de desarrollo
+6. Levantar el entorno de desarrollo
 ```bash
 npm run start:dev
 ```

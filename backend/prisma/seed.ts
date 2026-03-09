@@ -1,4 +1,4 @@
-import { PrismaClient, ObjectCategory } from '@prisma/client';
+import { PrismaClient, ObjectCategory, Prisma } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { getDatabaseUrl } from '../src/prisma/database.config';
@@ -49,6 +49,12 @@ async function main() {
 
 main()
   .catch((e) => {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2021') {
+      console.error(
+        'La base de datos aun no tiene las tablas del proyecto. Ejecuta `npx prisma migrate deploy` antes del seeder.',
+      );
+    }
+
     console.error(e);
     process.exit(1);
   })

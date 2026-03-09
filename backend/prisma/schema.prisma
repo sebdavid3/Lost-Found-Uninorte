@@ -19,6 +19,11 @@ enum Role {
 enum ObjectCategory {
   ELECTRONIC
   COMMON
+  CLOTHING
+  STATIONERY
+  DOCUMENT
+  ACCESSORY
+  OTHER
 }
 
 enum ClaimStatus {

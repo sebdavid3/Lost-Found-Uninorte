@@ -71,14 +71,29 @@ export class ClaimsService {
     });
   }
 
-  update(id: string, updateClaimDto: UpdateClaimDto) {
+  async update(id: string, updateClaimDto: UpdateClaimDto) {
+    const claim = await this.findOne(id);
+    if (!claim) throw new NotFoundException(`Reclamación con ID ${id} no encontrada.`);
+    if (claim.status !== 'PENDING') {
+      throw new BadRequestException('Solo se pueden modificar reclamaciones en estado PENDIENTE.');
+    }
+
     return this.prisma.claim.update({
       where: { id },
       data: updateClaimDto,
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    const claim = await this.findOne(id);
+    if (!claim) throw new NotFoundException(`Reclamación con ID ${id} no encontrada.`);
+    if (claim.status !== 'PENDING') {
+      throw new BadRequestException('Solo se pueden cancelar reclamaciones en estado PENDIENTE.');
+    }
+
+    // Prisma requiere eliminar las tablas relacionadas primero si no hay Cascade Delete configurado implícitamente
+    await this.prisma.evidence.deleteMany({ where: { claimId: id } });
+
     return this.prisma.claim.delete({
       where: { id },
     });

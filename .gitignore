@@ -1,6 +1,8 @@
 # compiled output
 /dist
+backend/dist/
 /node_modules
+.gemini/
 
 # Logs
 logs

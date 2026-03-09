@@ -58,6 +58,7 @@ docker-compose up -d db
 ```bash
 cd backend
 npm install --legacy-peer-deps
+cp .env.example .env
 ```
 
 3. Construir/sincronizar los tipos de Prisma
@@ -67,7 +68,7 @@ npx prisma generate
 
 4. Llenar la base de datos con informacion semilla (Users y Objects de prueba)
 ```bash
-npx ts-node -r dotenv/config prisma/seed.ts
+npx ts-node prisma/seed.ts
 ```
 
 5. Levantar el entorno de desarrollo

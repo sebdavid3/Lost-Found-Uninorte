@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------ Enums ------
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum ObjectCategory {
+  ELECTRONIC
+  COMMON
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ------ Models ------
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      Role     @default(STUDENT)
+  claims    Claim[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Object {
+  id          String         @id @default(uuid())
+  description String
+  photo       String         // Regla de Negocio: Todo objeto debe tener una fotografía.
+  category    ObjectCategory
+  location    String
+  foundAt     DateTime       @default(now())
+  claims      Claim[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Claim {
+  id        String      @id @default(uuid())
+  status    ClaimStatus @default(PENDING)
+  user      User        @relation(fields: [userId], references: [id])
+  userId    String
+  object    Object      @relation(fields: [objectId], references: [id])
+  objectId  String
+  evidences Evidence[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Evidence {
+  id          String   @id @default(uuid())
+  url         String?  // Opcional si es tipo serie, requerido si es foto.
+  type        String   // Ej: 'NÚMERO DE SERIE', 'FACTURA DIGITAL', 'FOTO REFRENCIA'
+  description String?
+  claim       Claim    @relation(fields: [claimId], references: [id])
+  claimId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

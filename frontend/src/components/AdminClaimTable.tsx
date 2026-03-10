@@ -19,45 +19,56 @@ export const AdminClaimTable: React.FC<AdminClaimTableProps> = ({ claims, onView
     }
   };
 
+  if (claims.length === 0) {
+    return (
+      <div className="w-full p-8 text-center rounded-2xl border border-slate-700/50 bg-slate-800/50 text-slate-300">
+        <p className="font-semibold">No hay reclamaciones registradas.</p>
+        <p className="text-sm text-slate-400 mt-1">Cuando lleguen nuevas solicitudes aparecerán aquí.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full overflow-hidden rounded-3xl border border-slate-700/50 bg-slate-800/50 shadow-2xl backdrop-blur-xl">
+    <div className="w-full overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/50 shadow-xl backdrop-blur-xl">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-[760px]">
           <thead>
             <tr className="bg-slate-900/50 text-xs uppercase tracking-wider text-slate-400 font-bold border-b border-slate-700/50">
-              <th className="px-8 py-5">ID Ref</th>
-              <th className="px-8 py-5">Objeto Reclamado</th>
-              <th className="px-8 py-5">Estudiante</th>
-              <th className="px-8 py-5">Fecha Solicitud</th>
-              <th className="px-8 py-5">Estado</th>
-              <th className="px-8 py-5 text-right w-32">Acciones</th>
+              <th className="px-5 py-4">ID Ref</th>
+              <th className="px-5 py-4">Objeto Reclamado</th>
+              <th className="px-5 py-4">Estudiante</th>
+              <th className="px-5 py-4">Fecha Solicitud</th>
+              <th className="px-5 py-4">Estado</th>
+              <th className="px-5 py-4 text-right w-32">Acciones</th>
             </tr>
           </thead>
-          <tbody className="text-sm divide-y divide-slate-700/50 text-slate-200 bg-transparent">
+          <tbody className="text-sm divide-y divide-slate-700/50 text-slate-200 bg-transparent leading-relaxed">
             {claims.map((claim) => (
               <tr key={claim.id} className="hover:bg-slate-700/30 transition-colors group">
-                <td className="px-8 py-6 font-mono text-xs text-slate-400">
+                <td className="px-5 py-4 font-mono text-xs text-slate-400">
                   <span className="bg-slate-900/50 px-2 py-1 rounded inline-block">#{claim.id.split('-')[0]}</span>
                 </td>
-                <td className="px-8 py-6 font-medium text-white">
-                  {claim.object?.description}
+                <td className="px-5 py-4 font-medium text-white max-w-[260px]">
+                  <p className="line-clamp-2">{claim.object?.description}</p>
                 </td>
-                <td className="px-8 py-6 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/30 shrink-0">
-                    {(claim.userId === '123' ? 'Juan Pérez' : 'Anon').charAt(0)}
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/30 shrink-0">
+                      {(claim.userId === '123' ? 'Juan Pérez' : 'Anon').charAt(0)}
+                    </div>
+                    <span className="text-slate-200">{claim.userId === '123' ? 'Juan Pérez' : 'Estudiante Anon'}</span>
                   </div>
-                  <span>{claim.userId === '123' ? 'Juan Pérez' : 'Estudiante Anon'}</span>
                 </td>
-                <td className="px-8 py-6 text-slate-400">
+                <td className="px-5 py-4 text-slate-400 whitespace-nowrap">
                   {new Date(claim.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric'})}
                 </td>
-                <td className="px-8 py-6">
+                <td className="px-5 py-4">
                   {getStatusBadge(claim.status)}
                 </td>
-                <td className="px-8 py-6 text-right">
+                <td className="px-5 py-4 text-right">
                   <button 
                     onClick={() => onViewDetails(claim)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-500/30 text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-500/30 text-white text-xs font-bold rounded-lg transition-all"
                   >
                     <Eye className="w-4 h-4" /> Gestor
                   </button>

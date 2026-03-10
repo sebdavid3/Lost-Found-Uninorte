@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Search } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { Gallery } from '../components/Gallery';
 import type { LostObject, Evidence } from '../types';
 import { apiService } from '../services/api';
@@ -64,36 +64,35 @@ export const CatalogPage: React.FC = () => {
   );
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-12 fade-in">
+    <div className="w-full max-w-6xl mx-auto space-y-8 md:space-y-10 fade-in">
       {/* Hero Section */}
-      <section className="relative h-[400px] flex items-center justify-center overflow-hidden rounded-[40px]">
+      <section className="relative h-[320px] md:h-[360px] flex items-center justify-center overflow-hidden rounded-3xl border border-white/10">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-[var(--primary)] opacity-90 z-0"></div>
         <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1541339907198-e08756ebafe3?auto=format&fit=crop&q=80&w=1200')] bg-cover bg-center mix-blend-overlay"></div>
         
-        <div className="relative z-10 text-center space-y-6 px-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold uppercase tracking-widest animate-float">
+        <div className="relative z-10 text-center space-y-4 px-4 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] font-semibold uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
             Recupera lo que es tuyo
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">
             Lost<span className="text-[var(--primary)]">&</span>Found
           </h1>
-          <p className="text-gray-300 max-w-xl mx-auto text-lg">
+          <p className="text-slate-300 mx-auto text-base md:text-lg leading-relaxed">
             Sistema inteligente de recuperación de objetos perdidos de la Universidad del Norte.
           </p>
         </div>
       </section>
 
       {/* Search and Filters */}
-      <div className="sticky top-24 z-40 py-6 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
-        <div className="relative max-w-4xl mx-auto group px-4">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative flex items-center shrink-0">
-            <Search className="absolute left-6 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+      <div className="sticky top-[76px] z-40 py-4 bg-[#0f172a]/90 backdrop-blur-xl border-y border-white/10 rounded-2xl">
+        <div className="relative max-w-4xl mx-auto group px-3 md:px-4">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-2xl blur-md opacity-50"></div>
+          <div className="relative">
             <input 
               type="text" 
               placeholder="Buscar por nombre, categoría o descripción..." 
-              className="w-full pl-14 pr-8 py-5 bg-slate-900/80 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-lg"
+              className="w-full px-4 py-3.5 bg-slate-900/90 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-transparent transition-all text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -102,10 +101,13 @@ export const CatalogPage: React.FC = () => {
       </div>
 
       {/* Object Gallery */}
-      <div className="space-y-8">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h2 className="text-2xl font-bold text-white">Catálogo de Objetos</h2>
-          <span className="text-gray-500 text-sm font-medium">{filteredObjects.length} objetos encontrados</span>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 border-b border-white/10 pb-4 text-left">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Catálogo de Objetos</h2>
+            <p className="text-sm text-slate-400 mt-1">Explora objetos reportados por Bienestar Universitario.</p>
+          </div>
+          <span className="text-slate-400 text-sm font-medium">{filteredObjects.length} resultados</span>
         </div>
         
         <Gallery 

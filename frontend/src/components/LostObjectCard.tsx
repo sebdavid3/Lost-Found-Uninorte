@@ -41,7 +41,7 @@ export const LostObjectCard: React.FC<LostObjectCardProps> = ({ item, onClaim })
   const closeToDonation = isCloseToDonation();
 
   return (
-    <div className={`item-card relative ${closeToDonation ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : ''}`}>
+    <div className={`item-card relative rounded-2xl ${closeToDonation ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : ''}`}>
       <div className="glow-effect" />
       
       {closeToDonation && (
@@ -50,7 +50,7 @@ export const LostObjectCard: React.FC<LostObjectCardProps> = ({ item, onClaim })
         </div>
       )}
 
-      <div className="w-full h-48 bg-gray-800 rounded-lg mb-4 flex items-center justify-center overflow-hidden border border-[var(--glass-border)]">
+      <div className="w-full h-44 bg-gray-800 rounded-xl mb-4 flex items-center justify-center overflow-hidden border border-[var(--glass-border)]">
         {item.photo ? (
            <img 
             src={item.photo} 
@@ -69,25 +69,27 @@ export const LostObjectCard: React.FC<LostObjectCardProps> = ({ item, onClaim })
         )}
       </div>
 
-      <div className="item-category">{getCategoryLabel(item.category)}</div>
-      <h3 className="item-title truncate" title={item.description}>
+      <div className="inline-flex self-start text-[11px] font-semibold uppercase tracking-wide text-slate-300 bg-white/5 px-2.5 py-1 rounded-full mb-2 border border-white/10">
+        {getCategoryLabel(item.category)}
+      </div>
+      <h3 className="text-lg font-semibold text-white line-clamp-2 min-h-[3.5rem]" title={item.description}>
         {item.description}
       </h3>
       
-      <div className="item-date">
+      <div className="item-date mt-2">
         <Calendar className="w-4 h-4" />
         <span>Reportado el {formatDate(item.foundAt)}</span>
       </div>
       
-      <div className="item-desc flex items-start gap-2">
+      <div className="item-desc flex items-start gap-2 mt-1">
         <MapPin className="w-4 h-4 mt-1 flex-shrink-0 text-[var(--primary-light)]" />
-        <span className="line-clamp-2" title={`Ubicación: ${item.location}`}>
+        <span className="line-clamp-2 text-sm" title={`Ubicación: ${item.location}`}>
           Encontrado en: {item.location}
         </span>
       </div>
       
       <div className="mt-auto pt-4 border-t border-[var(--glass-border)]">
-        <button className="btn-outline w-full" onClick={() => onClaim(item)}>
+        <button className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-slate-200 font-semibold hover:bg-blue-500/15 hover:border-blue-400/40 hover:text-white transition-colors" onClick={() => onClaim(item)}>
           Reclamar Objeto
         </button>
       </div>

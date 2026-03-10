@@ -2,54 +2,29 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Users, FileCheck, Shield, RefreshCcw } from 'lucide-react';
 import { AdminClaimTable } from '../components/AdminClaimTable';
 import { ClaimDetailModal } from '../components/ClaimDetailModal';
-import type { Claim, Role } from '../types';
+import type { Claim } from '../types';
+import { Role, ClaimStatus } from '../types';
 import { apiService } from '../services/api';
-import { mockLostObjects } from '../services/mockData';
-
-// Generar reclamos mock basados en los objetos
-const initialMockClaims: Claim[] = [
-  {
-    id: 'claim-1',
-    status: 'PENDING',
-    userId: '123',
-    objectId: '1',
-    object: mockLostObjects[0],
-    evidences: [
-      { id: 'ev-1', type: 'NÚMERO DE SERIE', description: 'ABC-987-XYZ', claimId: 'claim-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      { id: 'ev-2', type: 'FACTURA DIGITAL', description: 'Factura adjunta en formato PDF', url: 'https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&q=80&w=400', claimId: 'claim-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    ],
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'claim-2',
-    status: 'PENDING',
-    userId: '456',
-    objectId: '2',
-    object: mockLostObjects[1],
-    evidences: [
-      { id: 'ev-3', type: 'DESCRIPCIÓN DISTINTIVA', description: 'Tiene una calcomanía de un gato en la base.', claimId: 'claim-2', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    ],
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
+// Mocks eliminados para usar DB Real
 
 export const AdminPanelPage: React.FC = () => {
-  const [claims, setClaims] = useState<Claim[]>(initialMockClaims);
+  const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
-  const [simulatedRole, setSimulatedRole] = useState<Role>('ADMIN');
+  const [simulatedRole, setSimulatedRole] = useState<Role>(Role.ADMIN);
 
   const fetchClaims = React.useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await apiService.getClaims(simulatedRole, 'admin-id');
-      if (data && data.length > 0) {
+      if (data) {
         setClaims(data);
       }
-    } catch (error) {
-      console.error('Error fetching claims:', error);
+    } catch (err: any) {
+      console.error('Error fetching claims:', err);
+      setError(err.message || 'Error al obtener reclamaciones.');
     } finally {
       setLoading(false);
     }
@@ -62,13 +37,13 @@ export const AdminPanelPage: React.FC = () => {
   const handleApprove = async (id: string) => {
     try {
       await apiService.verifyClaim(id, simulatedRole, 'admin-id');
-      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'APPROVED' } : c));
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: ClaimStatus.APPROVED } : c));
       setSelectedClaim(null);
       alert('Reclamación aprobada exitosamente vía Chain of Responsibility.');
-    } catch (error) {
-      console.error('Error al aprobar:', error);
+    } catch (err) {
+      console.error('Error al aprobar:', err);
       alert('Error en la verificación. (Simulando éxito para el Paso 5)');
-      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'APPROVED' } : c));
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: ClaimStatus.APPROVED } : c));
       setSelectedClaim(null);
     }
   };
@@ -76,13 +51,13 @@ export const AdminPanelPage: React.FC = () => {
   const handleReject = async (id: string, reason: string) => {
     try {
       await apiService.rejectClaim(id, reason, simulatedRole, 'admin-id');
-      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'REJECTED', rejectionReason: reason } : c));
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: ClaimStatus.REJECTED, rejectionReason: reason } : c));
       setSelectedClaim(null);
       alert(`Reclamación rechazada. Motivo: ${reason}`);
-    } catch (error) {
-      console.error('Error al rechazar:', error);
+    } catch (err) {
+      console.error('Error al rechazar:', err);
       alert('Error al rechazar la reclamación. (Simulando éxito para el Paso 5)');
-      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'REJECTED', rejectionReason: reason } : c));
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: ClaimStatus.REJECTED, rejectionReason: reason } : c));
       setSelectedClaim(null);
     }
   };
@@ -105,10 +80,10 @@ export const AdminPanelPage: React.FC = () => {
         <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-4">
           <div className="flex flex-col">
             <span className="text-[10px] text-gray-500 font-bold uppercase">Rol Simulado (Para PROXY)</span>
-            <span className="text-xs text-amber-500 font-mono">{simulatedRole} {simulatedRole === 'STUDENT' ? '🔒' : '🔓'}</span>
+            <span className="text-xs text-amber-500 font-mono">{simulatedRole} {simulatedRole === Role.STUDENT ? '🔒' : '🔓'}</span>
           </div>
           <button 
-            onClick={() => setSimulatedRole(simulatedRole === 'ADMIN' ? 'STUDENT' : 'ADMIN')}
+            onClick={() => setSimulatedRole(simulatedRole === Role.ADMIN ? Role.STUDENT : Role.ADMIN)}
             className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"
             title="Cambiar Rol para probar Proxy de Protección de Datos"
           >
@@ -149,6 +124,11 @@ export const AdminPanelPage: React.FC = () => {
 
       {/* Main Table Container */}
       <div className="space-y-4">
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-left">
+             <span className="font-bold border-b border-red-500/30">Error del Servidor:</span> {error}
+          </div>
+        )}
         <h2 className="text-xl font-bold text-white text-left flex items-center gap-2">
           Listado de Solicitudes
           <span className="text-xs font-normal text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">

@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary: #c8102e; /* Uninorte Red */
-  --primary-light: #e02f4a;
+  --primary: #3b82f6; /* Electric Blue */
+  --primary-light: #60a5fa;
   --secondary: #1f2937;
   --bg-color: #0f172a;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  --gradient-bg: linear-gradient(135deg, #0f172a 0%, #172033 100%);
   --success: #10b981;
 }
 
@@ -69,7 +69,6 @@ body {
   align-items: center;
   justify-content: flex-start;
   padding: 4rem 2rem;
-  text-align: center;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -214,13 +213,13 @@ body {
   width: 100%;
   padding: 0.8rem;
   background: transparent;
-  color: white;
-  border: 1px solid var(--glass-border);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -228,8 +227,11 @@ body {
 }
 
 .btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  color: var(--primary-light);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
 }
 
 /* Form Styles */
@@ -255,13 +257,13 @@ body {
   color: white;
   font-family: inherit;
   font-size: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.2);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .form-input:disabled {
@@ -273,26 +275,29 @@ body {
 .btn-primary {
   width: 100%;
   padding: 1rem;
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
   border: none;
   border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
+  transition: all 0.3s ease;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
 }
 
 .btn-primary:hover {
-  background: var(--primary-light);
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 .btn-back {

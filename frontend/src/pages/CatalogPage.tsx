@@ -85,15 +85,15 @@ export const CatalogPage: React.FC = () => {
       </section>
 
       {/* Search and Filters */}
-      <div className="sticky top-24 z-40 py-4 bg-gray-900/50 backdrop-blur-xl">
-        <div className="relative max-w-2xl mx-auto group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-[var(--primary)] to-amber-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative flex items-center">
-            <Search className="absolute left-6 w-5 h-5 text-gray-400" />
+      <div className="sticky top-24 z-40 py-6 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+        <div className="relative max-w-4xl mx-auto group px-4">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative flex items-center shrink-0">
+            <Search className="absolute left-6 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="text" 
               placeholder="Buscar por nombre, categoría o descripción..." 
-              className="w-full pl-16 pr-8 py-5 bg-gray-800/80 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
+              className="w-full pl-14 pr-8 py-5 bg-slate-900/80 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-lg"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

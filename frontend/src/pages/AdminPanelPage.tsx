@@ -22,9 +22,9 @@ export const AdminPanelPage: React.FC = () => {
       if (data) {
         setClaims(data);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching claims:', err);
-      setError(err.message || 'Error al obtener reclamaciones.');
+      setError(err instanceof Error ? err.message : 'Error al obtener reclamaciones.');
     } finally {
       setLoading(false);
     }
@@ -94,31 +94,35 @@ export const AdminPanelPage: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
+        <div className="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50 text-left backdrop-blur-xl shadow-lg hover:border-blue-500/30 transition-colors">
           <div className="flex justify-between items-start mb-4">
-            <Users className="w-5 h-5 text-blue-400" />
-            <span className="text-[10px] text-blue-400 font-bold bg-blue-400/10 px-2 py-0.5 rounded">Total</span>
+            <Users className="w-6 h-6 text-blue-400" />
+            <span className="text-xs text-blue-400 font-bold bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">Total</span>
           </div>
-          <p className="text-2xl font-bold text-white">{claims.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Nuevas solicitudes</p>
+          <p className="text-3xl font-bold text-white">{claims.length}</p>
+          <p className="text-sm text-gray-400 mt-2 font-medium">Reclamaciones globales</p>
         </div>
-        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
+        
+        <div className="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50 text-left backdrop-blur-xl shadow-lg hover:border-amber-500/30 transition-colors">
           <div className="flex justify-between items-start mb-4">
-            <FileCheck className="w-5 h-5 text-green-400" />
-            <span className="text-[10px] text-green-400 font-bold bg-green-400/10 px-2 py-0.5 rounded">Progreso</span>
+            <FileCheck className="w-6 h-6 text-amber-400" />
+            <span className="text-xs text-amber-400 font-bold bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Solicitudes</span>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-3xl font-bold text-white">
+            {claims.filter(c => c.status === 'PENDING').length}
+          </p>
+          <p className="text-sm text-gray-400 mt-2 font-medium">Esperando revisión</p>
+        </div>
+        
+        <div className="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50 text-left backdrop-blur-xl shadow-lg hover:border-green-500/30 transition-colors">
+          <div className="flex justify-between items-start mb-4">
+            <Shield className="w-6 h-6 text-green-400" />
+            <span className="text-xs text-green-400 font-bold bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">Gestión</span>
+          </div>
+          <p className="text-3xl font-bold text-white">
             {claims.filter(c => c.status !== 'PENDING').length}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Gestionadas hoy</p>
-        </div>
-        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
-          <div className="flex justify-between items-start mb-4">
-            <Shield className="w-5 h-5 text-amber-400" />
-            <span className="text-[10px] text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded">Seguridad</span>
-          </div>
-          <p className="text-2xl font-bold text-white">Módulo</p>
-          <p className="text-xs text-gray-400 mt-1">Protección Proxy Activa</p>
+          <p className="text-sm text-gray-400 mt-2 font-medium">Casos resueltos</p>
         </div>
       </div>
 

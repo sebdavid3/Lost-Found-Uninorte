@@ -30,5 +30,16 @@ services:
       - /usr/src/app/node_modules
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lost_found_frontend
+    ports:
+      - '5173:5173'
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   postgres_data:

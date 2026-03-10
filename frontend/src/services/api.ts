@@ -36,7 +36,7 @@ export const apiService = {
     apiFetch<LostObject>(`/objects/${id}`),
 
   // --- RECLAMACIONES ---
-  createClaim: (data: { objectId: string, userId: string, evidences: Omit<Evidence, 'id' | 'claimId' | 'createdAt' | 'updatedAt'>[] }) =>
+  createClaim: (data: { objectId: string, userId: string, objectCategory: string, evidences: Omit<Evidence, 'id' | 'claimId' | 'createdAt' | 'updatedAt'>[] }) =>
     apiFetch<Claim>('/claims', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -1,5 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { CatalogPage } from './pages/CatalogPage';
+import { AdminPanelPage } from './pages/AdminPanelPage';
 import { ShieldAlert } from 'lucide-react';
 import './App.css';
 
@@ -24,7 +25,7 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<CatalogPage />} />
-          <Route path="/admin" element={<div className="text-white">Panel Administrativo (Paso 4)</div>} />
+          <Route path="/admin" element={<AdminPanelPage />} />
         </Routes>
       </main>
 

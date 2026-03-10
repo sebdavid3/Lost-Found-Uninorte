@@ -1,7 +1,9 @@
 import React from 'react';
-import { X, CheckCircle, XCircle, FileText, User, Tag, MapPin, ExternalLink } from 'lucide-react';
+import { X, CheckCircle, XCircle, FileText, User, Tag, MapPin, ExternalLink, ShieldCheck } from 'lucide-react';
 import type { Claim, Role } from '../types';
 import { DataProtectionProxy } from '../patterns/DataProtectionProxy';
+import { ProcessingStepper } from '../patterns/ProcessingStepper';
+import { EvidenceVisitorModal } from '../patterns/EvidenceVisitor';
 
 interface ClaimDetailModalProps {
   claim: Claim;
@@ -20,6 +22,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 }) => {
   const [rejectionReason, setRejectionReason] = React.useState('');
   const [showRejectForm, setShowRejectForm] = React.useState(false);
+  const [showAuditor, setShowAuditor] = React.useState(false);
+
+  const activeStep = claim.status === 'APPROVED' ? 2 : claim.status === 'REJECTED' ? 1 : 0;
 
   return (
     <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm fade-in">
@@ -47,6 +52,14 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         {/* Content */}
         <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
           
+          {/* STEPPER (Chain of Responsibility Representation) */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-left">Cadena de Procesamiento</h3>
+            <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
+              <ProcessingStepper currentStatus={claim.status} activeStep={activeStep} />
+            </div>
+          </div>
+
           {/* Grid de Información */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <div className="space-y-4">
@@ -93,7 +106,17 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
           {/* Sección de Evidencias con PROXY */}
           <div className="space-y-4 text-left">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Evidencias Presentadas (Sustento)</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Evidencias Presentadas (Sustento)</h3>
+              {userRole === 'ADMIN' && (
+                <button 
+                  onClick={() => setShowAuditor(true)}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 hover:text-amber-400 transition-colors bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20"
+                >
+                  <ShieldCheck className="w-3 h-3" /> AUDITAR EVIDENCIAS (VISITOR)
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {claim.evidences?.map((ev, idx) => (
                 <div key={ev.id || idx} className="p-4 bg-white/5 rounded-xl border border-white/10 flex flex-col gap-3">
@@ -166,6 +189,13 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* VISITOR Modal */}
+      <EvidenceVisitorModal 
+        evidences={claim.evidences || []} 
+        isOpen={showAuditor} 
+        onClose={() => setShowAuditor(false)} 
+      />
     </div>
   );
 };

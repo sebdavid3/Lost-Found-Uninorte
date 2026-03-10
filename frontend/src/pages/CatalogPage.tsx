@@ -45,6 +45,7 @@ export const CatalogPage: React.FC = () => {
       await apiService.createClaim({
         objectId: selectedObject.id,
         userId: 'current-user-id',
+        objectCategory: selectedObject.category,
         evidences: formattedEvidences
       });
 

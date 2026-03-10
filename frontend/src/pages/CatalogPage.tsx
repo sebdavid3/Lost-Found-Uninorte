@@ -3,13 +3,22 @@ import { ShieldCheck, Search } from 'lucide-react';
 import { Gallery } from '../components/Gallery';
 import type { LostObject } from '../types';
 import { mockLostObjects } from '../services/mockData';
+import { ClaimForm } from '../components/ClaimForm';
+import type { EvidenceData } from '../patterns/ClaimFormFactory';
 
 export const CatalogPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedObject, setSelectedObject] = useState<LostObject | null>(null);
   
   const handleClaim = (item: LostObject) => {
-    // Para el Paso 3: Aquí se abrirá el formulario / Abstract Factory
-    alert(`Reclamando: ${item.description}`);
+    setSelectedObject(item);
+  };
+
+  const handleClaimSubmit = (evidences: EvidenceData[]) => {
+    console.log('Enviando reclamación para:', selectedObject?.description);
+    console.log('Evidencias:', evidences);
+    alert('¡Reclamación enviada con éxito! (Simulando API en el Paso 5)');
+    setSelectedObject(null);
   };
 
   const filteredObjects = mockLostObjects.filter(obj => 
@@ -61,6 +70,14 @@ export const CatalogPage: React.FC = () => {
           isLoading={false} 
           onClaim={handleClaim} 
         />
+
+        {selectedObject && (
+          <ClaimForm 
+            object={selectedObject} 
+            onClose={() => setSelectedObject(null)}
+            onSubmit={handleClaimSubmit}
+          />
+        )}
         
       </div>
     </div>

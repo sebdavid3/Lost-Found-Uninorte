@@ -41,5 +41,16 @@ export const mockLostObjects: LostObject[] = [
     foundAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
+  },
+  {
+    id: '5',
+    description: 'Cédula de Ciudadanía - Juan Pérez',
+    photo: 'https://images.unsplash.com/photo-1554200876-0f72381286b2?auto=format&fit=crop&q=80&w=400',
+    category: ObjectCategory.DOCUMENT,
+    location: 'Bloque G - Pasillo 2',
+    // 5 meses de antigüedad
+    foundAt: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
 ];

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Lost & Found Uninorte
 
 Bienvenido al repositorio Backend del sistema digital Lost & Found Uninorte. Este proyecto forma parte del Taller de Diseño de Software para modernizar y digitalizar la gestión de objetos perdidos de Bienestar Universitario.
@@ -204,3 +205,6 @@ El proyecto está configurado y optimizado para ser desplegado en Vercel de mane
 5. Haz clic en **Deploy**. 
 
 *Nota: Se ha incluido el archivo `vercel.json` dentro de `frontend` para manejar correctamente las rutas si decides expandir la aplicación a una Single Page Application (SPA).*
+=======
+# Lost-Found-Uninorte
+>>>>>>> d6e38a240e09b007623fb0286ce8e0199baf3653

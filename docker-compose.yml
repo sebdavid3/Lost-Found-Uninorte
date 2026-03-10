@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -12,6 +10,11 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d lost_found_uninorte"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   backend:
@@ -22,13 +25,13 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - DATABASE_URL=postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public
+      DATABASE_URL: postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public
+      NODE_ENV: production
     depends_on:
-      - db
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+      db:
+        condition: service_healthy
     restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy ; npm run seed:objects ; npm run start:prod"
 
   frontend:
     build:
@@ -36,9 +39,10 @@ services:
       dockerfile: Dockerfile
     container_name: lost_found_frontend
     ports:
-      - '5173:5173'
+      - '5173:80'
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

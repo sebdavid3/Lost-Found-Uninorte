@@ -30,10 +30,26 @@ export const LostObjectCard: React.FC<LostObjectCardProps> = ({ item, onClaim })
     });
   };
 
+  const isCloseToDonation = () => {
+    const foundDate = new Date(item.foundAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - foundDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 150; // about 5 months
+  };
+
+  const closeToDonation = isCloseToDonation();
+
   return (
-    <div className="item-card">
+    <div className={`item-card relative ${closeToDonation ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : ''}`}>
       <div className="glow-effect" />
       
+      {closeToDonation && (
+        <div className="absolute top-2 left-2 z-10 bg-orange-600/90 text-white text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-lg backdrop-blur-sm">
+          <span className="animate-pulse">⚠️</span> Próximo a donación/descarte
+        </div>
+      )}
+
       <div className="w-full h-48 bg-gray-800 rounded-lg mb-4 flex items-center justify-center overflow-hidden border border-[var(--glass-border)]">
         {item.photo ? (
            <img 
@@ -71,7 +87,7 @@ export const LostObjectCard: React.FC<LostObjectCardProps> = ({ item, onClaim })
       </div>
       
       <div className="mt-auto pt-4 border-t border-[var(--glass-border)]">
-        <button className="btn-outline" onClick={() => onClaim(item)}>
+        <button className="btn-outline w-full" onClick={() => onClaim(item)}>
           Reclamar Objeto
         </button>
       </div>

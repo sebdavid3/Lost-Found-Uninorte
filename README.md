@@ -172,28 +172,35 @@ Respuesta de rechazo esperada:
 
 ---
 
-## Como conectarlo con un Frontend (a implementar mas adelante)
+## Frontend (React UI)
 
-### 1) Estructura recomendada de vistas
-- **Login simulado / selector de rol:** captura `userId` y `role`.
-- **Listado de claims:** tabla con filtros por estado y fechas.
-- **Detalle de claim:** muestra evidencias y estado.
-- **Panel admin:** boton de verificacion `POST /claims/:id/verify`.
+El repositorio incluye ahora un proyecto React (Vite) listo para ser desplegado en Vercel, proporcionando la interfaz gráfica de usuario para el sistema "Lost & Found Uninorte".
 
-### 2) Contrato minimo cliente-backend
-- En cada request, el frontend debe enviar `x-user-role` y `x-user-id`.
-- Para `STUDENT`, ocultar acciones de admin (filtros globales y verify).
-- Manejar `403` mostrando mensaje de seguridad del backend.
+### Inicialización Local del Frontend
 
-### 3) Servicio HTTP sugerido en frontend
-- Crear un cliente API central (axios/fetch wrapper) que:
-	- inyecte headers de rol/usuario,
-	- estandarice manejo de errores (`400`, `403`, `409`),
-	- tipifique respuestas de `Claim`.
+1. Dirígete a la carpeta `frontend`:
+```bash
+cd frontend
+```
 
-### 4) Flujo UI recomendado para `verify`
-- Boton "Verificar" visible solo para admin.
-- Al confirmar:
-	- llamar `POST /claims/:id/verify`,
-	- refrescar detalle/listado,
-	- mostrar toast de aprobado o motivo de rechazo con `eslabonFallido`.
+2. Instala las dependencias:
+```bash
+npm install
+```
+
+3. Ejecuta el servidor de desarrollo:
+```bash
+npm run dev
+```
+
+### Despliegue en Vercel
+
+El proyecto está configurado y optimizado para ser desplegado en Vercel de manera directa. 
+
+1. Ve a [vercel.com](https://vercel.com/) e inicia sesión con tu cuenta de GitHub.
+2. Autoriza y selecciona tu repositorio `Lost-Found-Uninorte`.
+3. En la configuración del Framework Preset, Vercel detectará **Vite** automáticamente.
+4. **Root Directory:** Asegúrate de configurar el "Root Directory" seleccionando la subcarpeta `frontend`.
+5. Haz clic en **Deploy**. 
+
+*Nota: Se ha incluido el archivo `vercel.json` dentro de `frontend` para manejar correctamente las rutas si decides expandir la aplicación a una Single Page Application (SPA).*

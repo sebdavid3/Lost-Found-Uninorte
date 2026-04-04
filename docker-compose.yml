@@ -15,23 +15,51 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - lost_found_network
     restart: unless-stopped
 
-  backend:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: lost_found_mq
+    ports:
+      - '5672:5672'   # Puerto de mensajes
+      - '15672:15672' # Panel de administración (user: guest, pass: guest)
+    networks:
+      - lost_found_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  claims-service:
     build:
-      context: ./backend
+      context: ./services/claims-service
       dockerfile: Dockerfile
-    container_name: lost_found_backend
+    container_name: lost_found_claims_service
     ports:
       - '3000:3000'
     environment:
       DATABASE_URL: postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public
-      NODE_ENV: production
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      NODE_ENV: development
+    volumes:
+      - ./services/claims-service/src:/usr/src/app/src
+      - ./services/claims-service/prisma:/usr/src/app/prisma
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
-    command: sh -c "npx prisma migrate deploy ; npm run seed:objects ; npm run start:prod"
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lost_found_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: sh -c "npx prisma migrate deploy && npm run seed:objects && npm run start:dev"
 
   frontend:
     build:
@@ -41,9 +69,15 @@ services:
     ports:
       - '5173:80'
     depends_on:
-      backend:
-        condition: service_started
+      claims-service:
+        condition: service_healthy
+    networks:
+      - lost_found_network
     restart: unless-stopped
+
+networks:
+  lost_found_network:
+    driver: bridge
 
 volumes:
   postgres_data:

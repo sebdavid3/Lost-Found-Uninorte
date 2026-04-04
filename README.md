@@ -1,108 +1,83 @@
 # Lost & Found Uninorte
 
-Sistema para gestión de objetos perdidos en Universidad del Norte.
+[![NestJS](https://img.shields.io/badge/backend-NestJS-red.svg)](https://nestjs.com/)
+[![React](https://img.shields.io/badge/frontend-React-blue.svg)](https://react.dev/)
+[![Prisma](https://img.shields.io/badge/orm-Prisma-darkblue.svg)](https://www.prisma.io/)
+[![Docker](https://img.shields.io/badge/infra-Docker-blue.svg)](https://www.docker.com/)
+[![RabbitMQ](https://img.shields.io/badge/messaging-RabbitMQ-orange.svg)](https://www.rabbitmq.com/)
 
-## Stack
-- Backend: NestJS + Prisma + PostgreSQL
-- Frontend: React + Vite + Tailwind
-- Infraestructura: Docker Compose
+Sistema integral para la gestión de objetos perdidos en la Universidad del Norte. Este proyecto utiliza una arquitectura de microservicios robusta y sigue los principios de Clean Architecture para garantizar escalabilidad y mantenibilidad.
 
-## Estructura
-- `backend/`: API REST, Prisma, seed
-- `frontend/`: interfaz web
-- `docker-compose.yml`: orquestación completa
+---
 
-## Levantar todo con Docker (recomendado)
+## Inicio Rápido (Docker)
 
-Desde la raíz del proyecto:
+La forma recomendada de ejecutar el proyecto es utilizando Docker Compose, que orquestará la base de datos, el broker de mensajería y los servicios.
 
 ```bash
+# Levantar todos los servicios (con Hot Reload en servicios)
 docker compose up --build -d
 ```
 
-Esto levanta:
-- `db` (PostgreSQL)
-- `backend` (NestJS en `http://localhost:3000`)
-- `frontend` (Nginx con build de Vite en `http://localhost:5173`)
-
-### Qué hace backend al iniciar
-En `docker-compose.yml`, backend ejecuta:
-1. `npx prisma migrate deploy`
-2. `npm run seed:objects`
-3. `npm run start:prod`
-
-Es decir: aplica migraciones, inserta datos semilla de objetos y luego inicia la API.
-
-## Verificar estado
-
-```bash
-docker compose ps
-docker compose logs -f backend
-```
-
-## Detener / limpiar
-
-```bash
-docker compose down
-```
-
-Borrar también volúmenes (incluye base de datos):
-
-```bash
-docker compose down -v
-```
-
-## Ejecución local (sin Docker)
-
-### 1) Base de datos
-Levanta PostgreSQL con Docker:
-
-```bash
-docker compose up -d db
-```
-
-### 2) Backend
-
-```bash
-cd backend
-npm install --legacy-peer-deps
-npx prisma generate
-npx prisma migrate deploy
-npm run seed:objects
-npm run start:dev
-```
-
-Backend local: `http://localhost:3000`
-
-### 3) Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend local: `http://localhost:5173`
-
-## Seed de objetos
-
-Script disponible en backend:
-
-```bash
-npm run seed:objects
-```
-
-Archivo del seeder: `backend/prisma/seed.cjs`.
-
-## Troubleshooting rápido
-
-### Error de dependencias en build Docker backend (`ERESOLVE`)
-Ya está resuelto en `backend/Dockerfile` usando:
-- `npm ci --legacy-peer-deps`
-- `npm prune --omit=dev --legacy-peer-deps`
-
-### Error `Cannot find module 'dotenv'`
-Ya está resuelto moviendo `dotenv` a `dependencies` de backend.
+### Servicios y Paneles:
+- **Frontend:** [http://localhost:5173](http://localhost:5173)
+- **Claims Service (API):** [http://localhost:3000](http://localhost:3000)
+- **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (user: `guest`, pass: `guest`)
+- **Prisma Studio (Local):** `cd services/claims-service && npx prisma studio`
 
 ---
-Si necesitas, puedo también actualizar `backend/README.md` y `frontend/README.md` para que queden alineados con esta guía principal.
+
+## Arquitectura y Patrones
+
+### Estilo Arquitectónico: Microservicios
+El sistema está diseñado para ser distribuido, utilizando RabbitMQ como Message Broker para la comunicación asíncrona entre servicios.
+
+### Diseño Interno: Clean Architecture
+Cada servicio (ej: `claims-service`) se organiza en capas:
+- **Domain:** Entidades y reglas de negocio puras.
+- **Application:** Casos de uso y patrones de comportamiento (Saga, Factory, CoR, Visitor).
+- **Infrastructure:** Controladores, Adaptadores (Prisma), Proxies y configuración.
+
+### Patrones Arquitectónicos Asignados:
+- **Saga:** Flujo de reclamación (Andres Carrero).
+- **Audit Log:** Trazabilidad (Sebastian Ibañez).
+- **Service Discovery:** Descubrimiento (Ayen Henriquez).
+- **Outbox Pattern:** Consistencia de eventos (Luis Robles).
+- **Anti-Corruption Layer:** Integración externa (Andres Serrano).
+
+---
+
+## Estructura del Proyecto
+
+```text
+.
+├── services/               # Microservicios del sistema
+│   ├── claims-service/     # Servicio principal de reclamaciones
+│   │   ├── src/
+│   │   │   ├── domain/     # Capa de Dominio
+│   │   │   ├── application/# Capa de Aplicación
+│   │   │   └── infrastructure/ # Capa de Infraestructura
+│   │   └── prisma/         # Esquema de base de datos
+│   └── shared/             # Código y tipos compartidos
+├── frontend/               # Interfaz de usuario en React
+├── docs/                   # Documentación detallada y rúbrica
+└── docker-compose.yml      # Infraestructura optimizada
+```
+
+---
+
+## Desarrollo y Convenciones
+
+Para mantener la uniformidad, todos los colaboradores deben seguir las reglas definidas en:
+- **[GEMINI.md](./GEMINI.md)**: Reglas de branching, commits y codificación.
+- **[AI_MAP.md](./docs/AI_MAP.md)**: Mapa de localización de patrones y lógica.
+
+---
+
+## Pruebas y Validación
+
+```bash
+# Pruebas e2e en el servicio de reclamaciones
+cd services/claims-service
+npm run test:e2e
+```

@@ -1,9 +1,9 @@
 # Documentación: Módulo de Reclamaciones (Claims)
 
-## 📌 Descripción General
+## Descripción General
 Este módulo gestiona la creación, verificación y ciclo de vida de las solicitudes (Reclamaciones) por objetos perdidos en el sistema Lost & Found Uninorte. Se implementó utilizando **NestJS**, tipado estricto con **TypeScript** y gestión de bases de datos mediante **Prisma ORM** (conectado a un PostgreSQL en Docker).
 
-## ✨ Funcionalidades Principales
+## Funcionalidades Principales
 
 1. **CRUD Completo de Reclamaciones**: Endpoints para `POST`, `GET`, `PATCH` y `DELETE` ubicados en el controlador `/claims`.
 2. **Validación de Ciclo de Vida**: Las reclamaciones solo pueden editarse o cancelarse si su estado se encuentra en `PENDING`. Reclamaciones aprobadas o rechazadas son inmutables.
@@ -36,7 +36,7 @@ Este módulo gestiona la creación, verificación y ciclo de vida de las solicit
   - Si falla un eslabón, la reclamación se actualiza a `REJECTED` y se persiste `rejectionReason` en la tabla `Claim`.
   - La respuesta HTTP reporta el eslabón fallido (`eslabonFallido`) y el motivo exacto (`motivo`).
 
-## 🔐 Headers requeridos para lectura
+## Headers requeridos para lectura
 
 Para `GET /claims`, `GET /claims/:id`, y endpoints de filtro:
 
@@ -45,7 +45,7 @@ Para `GET /claims`, `GET /claims/:id`, y endpoints de filtro:
 
 > Nota: Si faltan o son inválidos, el controlador responde `400 Bad Request`.
 
-## 🚀 Guía de Pruebas Locales
+## Guía de Pruebas Locales
 
 Para probar este módulo, debes utilizar el script de seeding proveído y herramientas como **Postman**, **Insomnia** o realizar peticiones `fetch`.
 

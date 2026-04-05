@@ -13,11 +13,9 @@ export class ClaimsServiceProxy {
 
   async findAll(context: ClaimAccessContext) {
     if (context.role === Role.ADMIN) {
-      console.log(`[AUDITORIA] ADMIN ACCESO A TODAS LAS RECLAMACIONES`);
       return this.claimsService.findAll();
     }
 
-    console.log(`[AUDITORIA] STUDENT ${context.userId} ACCESO A SUS RECLAMACIONES`);
     const allClaims = await this.claimsService.findAll();
     return allClaims.filter(c => c.userId === context.userId);
   }
@@ -31,11 +29,9 @@ export class ClaimsServiceProxy {
 
     // Regla de Protección: Si es estudiante, solo puede ver la suya
     if (context.role === Role.STUDENT && claim.userId !== context.userId) {
-      console.warn(`[ALERTA SEGURIDAD] Intento de acceso no autorizado a claim ${id} por usuario ${context.userId}`);
       throw new ForbiddenException('Acceso denegado a la evidencia solicitada');
     }
 
-    console.log(`[AUDITORIA] ACCESO A DATOS ACCESIBLES DE CLAIM: ${id}`);
     return claim;
   }
 

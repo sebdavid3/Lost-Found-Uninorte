@@ -29,6 +29,7 @@ import { ClaimVerificationException } from '../../application/handlers/claim-ver
 import { ClaimElement, ClaimWithRelations } from '../../application/visitors/elements/claim.element';
 import { AuditVisitor } from '../../application/visitors/audit.visitor';
 import { TextSimilarityVisitor } from '../../application/visitors/text-similarity.visitor';
+import { AuditAction } from '../../application/decorators/audit-action.decorator';
 
 @Controller('claims')
 export class ClaimsController {
@@ -38,11 +39,13 @@ export class ClaimsController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @AuditAction('CLAIM_CREATED')
   @Post()
   create(@Body() createClaimDto: CreateClaimDto) {
     return this.claimsService.create(createClaimDto);
   }
 
+  @AuditAction('CLAIM_LIST_READ')
   @Get()
   findAll(@Req() request: Request) {
     const context = this.getContextFromRequest(request);
@@ -67,22 +70,26 @@ export class ClaimsController {
     return this.claimsServiceProxy.findByFoundDateRange(parsedStart, parsedEnd, context);
   }
 
+  @AuditAction('CLAIM_READ')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: Request) {
     const context = this.getContextFromRequest(request);
     return this.claimsServiceProxy.findOne(id, context);
   }
 
+  @AuditAction('CLAIM_UPDATED')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto) {
     return this.claimsService.update(id, updateClaimDto);
   }
 
+  @AuditAction('CLAIM_DELETED')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.claimsService.remove(id);
   }
 
+  @AuditAction('CLAIM_VERIFIED')
   @Post(':id/verify')
   async verify(@Param('id') id: string, @Req() request: Request) {
     const context = this.getContextFromRequest(request);

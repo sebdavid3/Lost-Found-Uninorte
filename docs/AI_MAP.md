@@ -28,3 +28,9 @@ Este documento ayuda a la IA a localizar rápidamente los eslabones de la arquit
 ## Entidades de Base de Datos
 - **Esquema Prisma:** `services/claims-service/prisma/schema.prisma`
 - **Seeder de Datos:** `services/claims-service/prisma/seed.ts`
+
+## Patrones Arquitectónicos
+- **Audit Log Pattern (Microservicio Dedicado):** `services/audit-service/`
+  - *Domain Factory:* `src/domain/factories/audit-log.factory.ts`
+  - *Hash Chain Service:* `src/application/services/audit-log.service.ts`
+  - *Data Capture (Interceptor):* `services/claims-service/src/application/interceptors/audit-log.interceptor.ts`

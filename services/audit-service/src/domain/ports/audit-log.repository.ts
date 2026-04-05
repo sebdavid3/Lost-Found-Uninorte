@@ -4,6 +4,7 @@ export const AUDIT_LOG_REPOSITORY = 'AuditLogRepository';
 
 export interface AuditLogRepository {
   append(entry: AuditLogEntryProps): Promise<void>;
+  appendWithChain(builder: (previousHash: string | null) => AuditLogEntryProps): Promise<void>;
   findAll(page: number, limit: number): Promise<AuditLogEntryProps[]>;
   findByEntityId(entityId: string): Promise<AuditLogEntryProps[]>;
   findByActorId(actorId: string): Promise<AuditLogEntryProps[]>;

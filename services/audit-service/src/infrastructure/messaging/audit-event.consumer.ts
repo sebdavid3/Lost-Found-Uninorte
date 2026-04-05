@@ -14,6 +14,7 @@ export class AuditEventConsumer {
       console.log(`[Audit Service] Successfully processed audit event: ${eventData.action} by ${eventData.actorId}`);
     } catch (error) {
       console.error(`[Audit Service] Failed to process audit event:`, error);
+      throw error;
     }
   }
 }

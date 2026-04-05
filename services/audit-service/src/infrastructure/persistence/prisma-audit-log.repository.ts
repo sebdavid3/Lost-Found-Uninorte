@@ -7,6 +7,38 @@ import { AuditLogEntryProps, AuditAction } from '../../domain/entities/audit-log
 export class PrismaAuditLogRepository implements AuditLogRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async appendWithChain(builder: (previousHash: string | null) => AuditLogEntryProps): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const lastEntries = await tx.$queryRaw<{ hash: string }[]>`
+        SELECT hash FROM "AuditLog"
+        ORDER BY timestamp DESC
+        LIMIT 1
+        FOR UPDATE
+      `;
+
+      const previousHash = lastEntries.length > 0 ? lastEntries[0].hash : null;
+      const entry = builder(previousHash);
+
+      await tx.auditLog.create({
+        data: {
+          id: entry.id,
+          action: entry.action,
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+          actorId: entry.actorId,
+          actorRole: entry.actorRole,
+          ipAddress: entry.ipAddress,
+          previousHash: entry.previousHash,
+          hash: entry.hash,
+          payload: entry.payload as any,
+          result: entry.result,
+          details: entry.details,
+          timestamp: entry.timestamp,
+        },
+      });
+    });
+  }
+
   async append(entry: AuditLogEntryProps): Promise<void> {
     // Usually appended in transaction in Service to guarantee atomic lock,
     // but offered here for standard inserts without lock concern.

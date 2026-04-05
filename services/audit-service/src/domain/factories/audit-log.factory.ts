@@ -36,13 +36,23 @@ export class AuditLogFactory {
     return { ...entry, hash };
   }
 
+  recalculateHash(entry: Omit<AuditLogEntryProps, 'hash'>): string {
+    return this.computeHash(entry);
+  }
+
   private computeHash(entry: Omit<AuditLogEntryProps, 'hash'>): string {
     const content = JSON.stringify({
+      id: entry.id,
       action: entry.action,
+      entityType: entry.entityType,
       entityId: entry.entityId,
       actorId: entry.actorId,
+      actorRole: entry.actorRole,
+      ipAddress: entry.ipAddress,
       timestamp: entry.timestamp.toISOString(),
       payload: entry.payload,
+      result: entry.result,
+      details: entry.details,
       previousHash: entry.previousHash,
     });
     return createHash('sha256').update(content).digest('hex');

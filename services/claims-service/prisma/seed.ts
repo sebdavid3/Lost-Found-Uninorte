@@ -1,11 +1,6 @@
 import { PrismaClient, ObjectCategory, Prisma } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { getDatabaseUrl } from '../src/infrastructure/prisma/database.config';
 
-const pool = new Pool({ connectionString: getDatabaseUrl() });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Iniciando seeder...');

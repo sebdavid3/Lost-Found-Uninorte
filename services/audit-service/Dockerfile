@@ -5,7 +5,9 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm install --legacy-peer-deps
+
+RUN npm ci --legacy-peer-deps
+
 FROM node:20-alpine AS builder
 RUN apk add --no-cache openssl openssl-dev libc6-compat
 
@@ -29,6 +31,6 @@ COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm", "run", "start:prod"]

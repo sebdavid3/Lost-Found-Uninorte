@@ -22,8 +22,13 @@ docker compose up --build -d
 ### Servicios y Paneles:
 - **Frontend:** [http://localhost:5173](http://localhost:5173)
 - **Claims Service (API):** [http://localhost:3000](http://localhost:3000)
+- **Audit Service (API):** [http://localhost:3001](http://localhost:3001)
 - **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (user: `guest`, pass: `guest`)
 - **Prisma Studio (Local):** `cd services/claims-service && npx prisma studio`
+
+### Nota de Infraestructura
+- `claims-service` aplica migraciones con `prisma migrate deploy`, ejecuta seed inicial y luego inicia la API.
+- `audit-service` aplica migraciones versionadas (`services/audit-service/prisma/migrations`) y luego inicia la API.
 
 ---
 
@@ -44,6 +49,12 @@ Cada servicio (ej: `claims-service`) se organiza en capas:
 - **Service Discovery:** Descubrimiento (Ayen Henriquez).
 - **Outbox Pattern:** Consistencia de eventos (Luis Robles).
 - **Anti-Corruption Layer:** Integración externa (Andres Serrano).
+
+### Audit Log Implementado
+- Captura asíncrona de eventos desde `claims-service` hacia `audit-service` usando RabbitMQ (`audit.event.created`).
+- Cadena de integridad criptográfica basada en `previousHash` + `hash` SHA-256 por registro.
+- Verificación de integridad expuesta en `GET /audit-log/verify-integrity`.
+- Separación por capas: el caso de uso de auditoría consume puertos de dominio y el lock transaccional vive en infraestructura.
 
 ---
 

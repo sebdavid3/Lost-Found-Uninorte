@@ -5,9 +5,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { getDatabaseUrl } from './prisma/database.config';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService
@@ -17,9 +14,7 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    const pool = new Pool({ connectionString: getDatabaseUrl() });
-    const adapter = new PrismaPg(pool);
-    super({ adapter });
+    super();
   }
 
   async onModuleInit() {

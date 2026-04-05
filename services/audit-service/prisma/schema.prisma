@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  action       String   // CLAIM_CREATED, CLAIM_VERIFIED, ACCESS_DENIED, etc.
+  entityType   String   // CLAIM, EVIDENCE, OBJECT
+  entityId     String   // ID del recurso afectado
+  actorId      String   // ID del usuario que ejecutó la acción
+  actorRole    String   // ADMIN o STUDENT
+  ipAddress    String   // IP del cliente
+  previousHash String?  // Hash del registro anterior (null para génesis)
+  hash         String   @unique // SHA-256 del contenido
+  payload      Json     // Snapshot del estado (request/response)
+  result       String   // SUCCESS, FAILURE, DENIED
+  details      String?  // Motivo de fallo, etc.
+  timestamp    DateTime @default(now())
+
+  @@index([entityId])
+  @@index([actorId])
+  @@index([action])
+  @@index([timestamp])
+}

@@ -26,11 +26,11 @@ Fecha de actualizacion: 2026-04-05
 
 | Estudiante | Patron | Que explica en exposicion | Estado de preparacion |
 | :--- | :--- | :--- | :--- |
-| Andres Carrero | Saga | Donde vive, flujo, problema que resuelve | NO INICIADO |
+| Andres Carrero | Saga | Orquestador (`POST /claims/:id/verify`), pasos, compensacion y como evolucionaria a flujo distribuido | EN PROGRESO |
 | Sebastian Ibanez | Audit Log | Donde vive, flujo, integridad hash-chain | EN PROGRESO |
 | Ayen Henriquez | Service Discovery | Consul como registry, registro/desregistro automatico, health checks y demo `/registry` | EN PROGRESO |
-| Luis Robles | Outbox Pattern | Donde vive, consistencia transaccional | NO INICIADO |
-| Andres Serrano | Anti-Corruption Layer | Donde vive, adaptacion de contratos externos | NO INICIADO |
+| Luis Robles | Outbox Pattern | Placeholder (por completar: ubicacion, flujo, garantias) | NO INICIADO |
+| Andres Serrano | Anti-Corruption Layer | Placeholder (por completar: integracion externa, adaptadores) | NO INICIADO |
 
 ## Demo sugerida - Service Discovery (2-3 minutos)
 
@@ -44,7 +44,7 @@ Objetivo: evidenciar que el servicio se registra en un registry y que se pueden 
 	- `docker compose scale claims-service=3`
 	- repetir `GET /registry/claims-service` para ver varias instancias.
 
-Nota: para que la demo funcione localmente, Consul debe estar disponible (contenedor en compose o servicio externo) porque el registro se hace contra el host `CONSUL_HOST`.
+Nota: para que la demo funcione localmente, Consul debe estar disponible (contenedor en compose o servicio externo). En el estado actual del repo, Consul ya esta incluido en `docker-compose.yml`.
 
 ## Evaluacion individual (preparacion)
 

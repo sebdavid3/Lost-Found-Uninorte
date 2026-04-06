@@ -45,7 +45,7 @@ Abril 2026
 1. Problema y solucion propuesta
 2. Estilo arquitectonico principal
 3. Patrones arquitectonicos asignados
-4. Desarrollo de patrones implementados: Audit Log + Service Discovery
+4. Desarrollo de patrones con evidencia: Audit Log + Service Discovery + Saga
 5. Diagramas y responsabilidades por integrante
 6. Cierre y plan de completitud
 
@@ -55,11 +55,11 @@ Abril 2026
 
 | Estudiante | Patron | Estado actual |
 | :--- | :--- | :--- |
-| Andres Carrero | Saga | En diseno |
+| Andres Carrero | Saga | Implementado |
 | Sebastian Ibanez | Audit Log | Implementado |
 | Ayen Henriquez | Service Discovery | Implementado (claims-service) |
-| Luis Robles | Outbox Pattern | En diseno |
-| Andres Serrano | Anti-Corruption Layer | En diseno |
+| Luis Robles | Outbox Pattern | En diseno (pendiente) |
+| Andres Serrano | Anti-Corruption Layer | En diseno (pendiente) |
 
 ---
 
@@ -107,7 +107,7 @@ claims-service  <->  broker (RabbitMQ)  <->  audit-service
 claims-db                                  audit-db
 ```
 
-\* Consul ya se usa en el codigo para Service Discovery. Para demo local reproducible debe estar disponible (agregar a compose o usar Consul externo).
+\* Consul ya se usa en el codigo para Service Discovery y esta incluido en `docker-compose.yml` para la demo local.
 
 Justificacion:
 
@@ -121,11 +121,11 @@ Justificacion:
 
 | Patron | Problema que resuelve | Componente objetivo |
 | :--- | :--- | :--- |
-| Saga | Coordinacion distribuida del flujo | Orquestador de procesos |
+| Saga | Orquestar un flujo multi-paso sin transaccion distribuida | `POST /claims/:id/verify` + handlers de validacion |
 | Audit Log | Trazabilidad inmutable | audit-service |
 | Service Discovery | Resolucion dinamica de servicios | Consul + modulo `service-discovery` en claims-service |
-| Outbox | Consistencia BD-eventos | Componente outbox |
-| ACL | Aislar contratos externos | Adaptadores de frontera |
+| Outbox Pattern | Consistencia BD-eventos | Placeholder (por definir en implementacion) |
+| Anti-Corruption Layer | Aislar contratos externos | Placeholder (por definir en integraciones) |
 
 ---
 
@@ -337,7 +337,7 @@ Demo de registry en tiempo real:
 3. (Opcional) Escalar y repetir:
         - `docker compose scale claims-service=3`
 
-Nota: requiere Consul disponible (en compose o externo).
+Nota: Consul esta incluido en `docker-compose.yml` para la demo local.
 
 ---
 
@@ -358,42 +358,74 @@ Nota:
 
 ---
 
-# Patron - Saga (Placeholder)
+# Patron - Saga (Flujo de verificacion)
 
-Estado: En diseno
+Estado: EN PROGRESO
 
-Completar en esta seccion:
+Problema:
 
-- Problema distribuido a coordinar.
-- Flujo de pasos y compensaciones.
-- Componente donde vive.
-- Evidencia tecnica (codigo/diagrama).
+- La verificacion de una reclamacion requiere multiples pasos.
+- No existe una transaccion global que garantice consistencia entre pasos.
+
+Solucion (Saga orquestada):
+
+- Orquestar el flujo como proceso multi-paso.
+- Aplicar compensacion de negocio ante fallos (rechazo con motivo) en lugar de rollback distribuido.
+
+Donde vive (evidencia en codigo):
+
+- `claims-service`: endpoint `POST /claims/:id/verify` (orquestador).
+
+---
+
+<!-- _class: compact -->
+
+# Saga - Pasos y compensacion
+
+Pasos (ejecutores / eslabones):
+
+1. IdentityHandler
+2. AvailabilityHandler
+3. EvidenceMatchHandler
+
+Exito:
+
+- Actualiza `Claim.status = APPROVED`.
+
+Fallo (compensacion):
+
+- Actualiza `Claim.status = REJECTED` + `rejectionReason`.
+- Responde `409 CONFLICT` indicando el eslabon fallido.
+
+Demo rapida (evidencia en vivo):
+
+- `POST /claims/:id/verify` con headers `x-user-role: ADMIN` y `x-user-id: ...`
 
 ---
 
 # Patron - Outbox Pattern (Placeholder)
 
-Estado: En diseno
+Estado: En diseno (pendiente)
 
 Completar en esta seccion:
 
- - Tabla outbox y esquema.
- - Publicador/reintentos/idempotencia.
- - Integracion con transaccion del dominio.
- - Garantias de entrega.
+- Tabla outbox y esquema.
+- Publicador, reintentos e idempotencia.
+- Integracion con transaccion del dominio.
+- Garantias de entrega.
 
 ---
 
 # Patron - Anti-Corruption Layer (Placeholder)
 
-Estado: En diseno
+Estado: En diseno (pendiente)
 
 Completar en esta seccion:
 
 - Sistema externo objetivo.
 - Traduccion de contratos.
 - Mapeo DTO externo -> modelo de dominio.
-- Politica de errores/versionado.
+- Politica de errores y versionado.
 
 ---
 
@@ -418,8 +450,8 @@ Regla:
 | Andres Carrero | Saga | Diagrama de orquestacion + flujo |
 | Sebastian Ibanez | Audit Log | Flujo eventos + hash chain + endpoint integridad |
 | Ayen Henriquez | Service Discovery | `GET /health` + `GET /registry/:serviceName` + registro/desregistro en Consul |
-| Luis Robles | Outbox | Flujo transaccion + publicacion garantizada |
-| Andres Serrano | ACL | Adaptadores y traduccion de contratos |
+| Luis Robles | Outbox Pattern | Placeholder (pendiente por completar) |
+| Andres Serrano | Anti-Corruption Layer | Placeholder (pendiente por completar) |
 
 ---
 
@@ -429,14 +461,16 @@ Estado actual:
 
 - Audit Log implementado y validado.
 - Service Discovery implementado en `claims-service` (Consul + endpoints de demo).
-- Demas patrones definidos a nivel de arquitectura objetivo.
+- Saga en progreso con evidencia del flujo de verificacion (orquestacion + compensacion).
+- Outbox Pattern y Anti-Corruption Layer: pendientes por completar por compañeros.
 
 Siguiente paso del equipo:
 
-1. Completar evidencia tecnica de cada patron.
-2. Hacer reproducible la demo de Service Discovery (Consul disponible en compose o guia de ejecucion).
+1. Completar narrativa y demo corta de Saga (verify + estados).
+2. Hacer reproducible la demo de Service Discovery (Consul ya incluido en compose).
 3. Cerrar diagramas C4/BD/Figma.
-4. Ensayar exposicion con preguntas por integrante.
+4. Completar evidencia y slides de Outbox Pattern y Anti-Corruption Layer.
+5. Ensayar exposicion con preguntas por integrante.
 
 ---
 

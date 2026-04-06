@@ -19,14 +19,14 @@ Coordinador de la entrega: TBD
 | 6.4 Estilo arquitectonico | TBD | LISTO PARA REVISION | TBD | Justificacion + trade-offs |
 | 6.5 Patrones de arquitectura | TBD | EN PROGRESO | TBD | Tabla completa + evidencia en codigo por patron (Service Discovery ya implementado en `claims-service`) |
 | 6.6 Diagramas obligatorios | TBD | NO INICIADO | TBD | C4 + BD + Figma enlazados |
-| Exposicion (diapositivas) | TBD | NO INICIADO | TBD | Guion y mapa de responsabilidades |
+| Exposicion (diapositivas) | TBD | EN PROGRESO | TBD | Guion y mapa de responsabilidades + slides por patron |
 
 ## Riesgos abiertos
 
 - Riesgo 1: Inconsistencia entre diagramas y codigo.
 - Riesgo 2: Patrones asignados sin evidencia tecnica.
 - Riesgo 3: Faltantes en requerimientos no funcionales medibles.
-- Riesgo 4: Service Discovery requiere Consul disponible; si no se agrega a `docker-compose.yml` la demo no es reproducible localmente.
+- Riesgo 4: Service Discovery requiere Consul disponible; mitigado al incluir Consul en `docker-compose.yml`.
 
 ## Acuerdos del equipo
 

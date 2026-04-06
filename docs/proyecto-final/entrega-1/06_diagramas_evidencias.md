@@ -18,7 +18,7 @@ Notas (consistencia con implementacion actual):
 
 - Contenedores backend: `claims-service` y `audit-service`.
 - Infraestructura: `rabbitmq`, `db` (PostgreSQL), `audit-db` (PostgreSQL).
-- Soporte para Service Discovery (implementado en codigo): Consul como registry (pendiente de reflejarse en `docker-compose.yml` si la demo se corre local).
+- Soporte para Service Discovery (implementado en codigo): Consul como registry (incluido en `docker-compose.yml` para demo local reproducible).
 
 ### C4 - Componentes
 - Estado: NO INICIADO

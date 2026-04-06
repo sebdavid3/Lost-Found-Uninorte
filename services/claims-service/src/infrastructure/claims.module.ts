@@ -5,11 +5,13 @@ import { ClaimFactoryProvider } from '../application/factories/claim-factory.pro
 import { CommonClaimFactory } from '../application/factories/common-claim.factory';
 import { ElectronicClaimFactory } from '../application/factories/electronic-claim.factory';
 import { ClaimsServiceProxy } from './controllers/claims.service.proxy';
+import { AntiCorruptionLayerService } from './acl/anti-corruption-layer.service';
 
 @Module({
   providers: [
     ClaimsService,
     ClaimsServiceProxy,
+    AntiCorruptionLayerService,
     ClaimFactoryProvider,
     CommonClaimFactory,
     ElectronicClaimFactory,

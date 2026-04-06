@@ -1,6 +1,28 @@
 import { randomUUID, createHash } from 'crypto';
 import { AuditLogEntryProps, AuditAction, AuditEntityType, AuditResult } from '../entities/audit-log-entry.entity';
 
+function canonicalizeForHash(value: unknown): unknown {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(canonicalizeForHash);
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const sortedKeys = Object.keys(record).sort();
+    const result: Record<string, unknown> = {};
+    for (const key of sortedKeys) {
+      result[key] = canonicalizeForHash(record[key]);
+    }
+    return result;
+  }
+
+  return value;
+}
+
 export class AuditEventDto {
   action: AuditAction;
   entityType: AuditEntityType;
@@ -50,7 +72,7 @@ export class AuditLogFactory {
       actorRole: entry.actorRole,
       ipAddress: entry.ipAddress,
       timestamp: entry.timestamp.toISOString(),
-      payload: entry.payload,
+      payload: canonicalizeForHash(entry.payload),
       result: entry.result,
       details: entry.details,
       previousHash: entry.previousHash,

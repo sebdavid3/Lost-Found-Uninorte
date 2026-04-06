@@ -11,7 +11,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
     await this.prisma.$transaction(async (tx) => {
       const lastEntries = await tx.$queryRaw<{ hash: string }[]>`
         SELECT hash FROM "AuditLog"
-        ORDER BY timestamp DESC
+        ORDER BY timestamp DESC, id DESC
         LIMIT 1
         FOR UPDATE
       `;
@@ -65,7 +65,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
     const logs = await this.prisma.auditLog.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }
@@ -73,7 +73,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
   async findByEntityId(entityId: string): Promise<AuditLogEntryProps[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { entityId },
-      orderBy: { timestamp: 'asc' },
+      orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }
@@ -81,7 +81,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
   async findByActorId(actorId: string): Promise<AuditLogEntryProps[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { actorId },
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }
@@ -89,7 +89,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
   async findByAction(action: AuditAction): Promise<AuditLogEntryProps[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { action },
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }
@@ -102,21 +102,21 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
           lte: end,
         },
       },
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }
 
   async findLastEntry(): Promise<AuditLogEntryProps | null> {
     const log = await this.prisma.auditLog.findFirst({
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
     return log ? (log as unknown as AuditLogEntryProps) : null;
   }
 
   async findAllOrdered(): Promise<AuditLogEntryProps[]> {
     const logs = await this.prisma.auditLog.findMany({
-      orderBy: { timestamp: 'asc' },
+      orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
     });
     return logs as unknown as AuditLogEntryProps[];
   }

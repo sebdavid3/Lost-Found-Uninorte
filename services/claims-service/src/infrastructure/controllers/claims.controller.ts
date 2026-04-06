@@ -29,6 +29,7 @@ import { ClaimVerificationException } from '../../application/handlers/claim-ver
 import { ClaimElement, ClaimWithRelations } from '../../application/visitors/elements/claim.element';
 import { AuditVisitor } from '../../application/visitors/audit.visitor';
 import { TextSimilarityVisitor } from '../../application/visitors/text-similarity.visitor';
+import { AntiCorruptionLayerService } from '../acl/anti-corruption-layer.service';
 
 @Controller('claims')
 export class ClaimsController {
@@ -36,46 +37,65 @@ export class ClaimsController {
     private readonly claimsService: ClaimsService,
     private readonly claimsServiceProxy: ClaimsServiceProxy,
     private readonly prisma: PrismaService,
+    private readonly antiCorruptionLayer: AntiCorruptionLayerService,
   ) {}
 
   @Post()
-  create(@Body() createClaimDto: CreateClaimDto) {
-    return this.claimsService.create(createClaimDto);
+  async create(@Body() createClaimDto: CreateClaimDto) {
+    const normalizedInput = this.antiCorruptionLayer.normalizeCreateClaimInput(createClaimDto);
+    const createdClaim = await this.claimsService.create(normalizedInput);
+
+    return this.antiCorruptionLayer.toClaimResponse(createdClaim, Role.STUDENT);
   }
 
   @Get()
-  findAll(@Req() request: Request) {
+  async findAll(@Req() request: Request) {
     const context = this.getContextFromRequest(request);
-    return this.claimsServiceProxy.findAll(context);
+    const claims = await this.claimsServiceProxy.findAll(context);
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get('filter/status')
-  findByStatus(@Req() request: Request, @Query('status') status: ClaimStatus) {
+  async findByStatus(@Req() request: Request, @Query('status') status: ClaimStatus) {
     const context = this.getContextFromRequest(request);
     const normalizedStatus = this.parseClaimStatus(status);
-    return this.claimsServiceProxy.findByStatus(normalizedStatus, context);
+    const claims = await this.claimsServiceProxy.findByStatus(normalizedStatus, context);
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get('filter/date-range')
-  findByDateRange(
+  async findByDateRange(
     @Req() request: Request,
     @Query('start') start: string,
     @Query('end') end: string,
   ) {
     const context = this.getContextFromRequest(request);
     const { parsedStart, parsedEnd } = this.parseDateRange(start, end);
-    return this.claimsServiceProxy.findByFoundDateRange(parsedStart, parsedEnd, context);
+    const claims = await this.claimsServiceProxy.findByFoundDateRange(
+      parsedStart,
+      parsedEnd,
+      context,
+    );
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() request: Request) {
+  async findOne(@Param('id') id: string, @Req() request: Request) {
     const context = this.getContextFromRequest(request);
-    return this.claimsServiceProxy.findOne(id, context);
+    const claim = await this.claimsServiceProxy.findOne(id, context);
+
+    return this.antiCorruptionLayer.toClaimResponse(claim, context.role as Role);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto) {
-    return this.claimsService.update(id, updateClaimDto);
+  async update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @Req() request: Request) {
+    const context = this.getContextFromRequest(request);
+    const updatedClaim = await this.claimsService.update(id, updateClaimDto);
+
+    return this.antiCorruptionLayer.toClaimResponse(updatedClaim, context.role as Role);
   }
 
   @Delete(':id')
@@ -131,7 +151,7 @@ export class ClaimsController {
 
       return {
         message: 'Reclamación verificada exitosamente y aprobada.',
-        claim: approvedClaim,
+        claim: this.antiCorruptionLayer.toClaimResponse(approvedClaim, context.role),
       };
     } catch (error) {
       const rejectionDetails = this.getRejectionDetails(error);

@@ -1,5 +1,4 @@
 # Lost & Found Uninorte
-
 [![NestJS](https://img.shields.io/badge/backend-NestJS-red.svg)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/frontend-React-blue.svg)](https://react.dev/)
 [![Prisma](https://img.shields.io/badge/orm-Prisma-darkblue.svg)](https://www.prisma.io/)
@@ -22,8 +21,13 @@ docker compose up --build -d
 ### Servicios y Paneles:
 - **Frontend:** [http://localhost:5173](http://localhost:5173)
 - **Claims Service (API):** [http://localhost:3000](http://localhost:3000)
+- **Audit Service (API):** [http://localhost:3001](http://localhost:3001)
 - **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (user: `guest`, pass: `guest`)
 - **Prisma Studio (Local):** `cd services/claims-service && npx prisma studio`
+
+### Nota de Infraestructura
+- `claims-service` aplica migraciones con `prisma migrate deploy`, ejecuta seed inicial y luego inicia la API.
+- `audit-service` aplica migraciones versionadas (`services/audit-service/prisma/migrations`) y luego inicia la API.
 
 ---
 
@@ -44,6 +48,12 @@ Cada servicio (ej: `claims-service`) se organiza en capas:
 - **Service Discovery:** Descubrimiento (Ayen Henriquez).
 - **Outbox Pattern:** Consistencia de eventos (Luis Robles).
 - **Anti-Corruption Layer:** Integración externa (Andres Serrano).
+
+### Audit Log Implementado
+- Captura asíncrona de eventos desde `claims-service` hacia `audit-service` usando RabbitMQ (`audit.event.created`).
+- Cadena de integridad criptográfica basada en `previousHash` + `hash` SHA-256 por registro.
+- Verificación de integridad expuesta en `GET /audit-log/verify-integrity`.
+- Separación por capas: el caso de uso de auditoría consume puertos de dominio y el lock transaccional vive en infraestructura.
 
 ---
 
@@ -80,4 +90,46 @@ Para mantener la uniformidad, todos los colaboradores deben seguir las reglas de
 # Pruebas e2e en el servicio de reclamaciones
 cd services/claims-service
 npm run test:e2e
+```
+
+---
+
+## (Opcional) Guía Local para la carpeta `backend/`
+
+Este repositorio incluye una carpeta `backend/` con una API NestJS y Prisma (útil si quieren correr el backend de forma local fuera del stack de microservicios).
+
+### Requisitos Previos
+1. Node.js instalado.
+2. Docker Desktop en ejecución.
+
+### Pasos de instalación
+
+1. Levantar la base de datos PostgreSQL en background:
+```bash
+docker compose up -d db
+```
+
+2. Instalar dependencias y preparar variables de entorno:
+```bash
+cd backend
+npm install --legacy-peer-deps
+cp .env.example .env
+```
+
+3. Generar el cliente Prisma y aplicar migraciones:
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+4. Sembrar datos de prueba y levantar el servidor:
+```bash
+npx ts-node prisma/seed.ts
+npm run start:dev
+```
+
+### Prisma Studio
+```bash
+cd backend
+npx prisma studio
 ```

@@ -1,22 +1,6 @@
 const { PrismaClient, ObjectCategory, Prisma } = require('@prisma/client');
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
+const prisma = new PrismaClient();
 
-function getDatabaseUrl() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
-    throw new Error(
-      'DATABASE_URL no esta configurada. Define DATABASE_URL antes de ejecutar el seeder.',
-    );
-  }
-
-  return databaseUrl;
-}
-
-const pool = new Pool({ connectionString: getDatabaseUrl() });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 async function ensureObject(data) {
   const existing = await prisma.object.findFirst({
@@ -82,5 +66,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    await pool.end();
   });

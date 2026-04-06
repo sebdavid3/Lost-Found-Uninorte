@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ClaimsController } from './claims.controller';
-import { ClaimsService } from './claims.service';
-import { ClaimsServiceProxy } from './claims.service.proxy';
-import { PrismaService } from '../prisma/prisma.service';
+import { ClaimsController } from '../infrastructure/controllers/claims.controller';
+import { ClaimsService } from '../application/services/claims.service';
+import { ClaimsServiceProxy } from '../infrastructure/controllers/claims.service.proxy';
+import { PrismaService } from '../infrastructure/prisma.service';
 
 describe('ClaimsController', () => {
   let controller: ClaimsController;

@@ -29,6 +29,7 @@ import { ClaimVerificationException } from '../../application/handlers/claim-ver
 import { ClaimElement, ClaimWithRelations } from '../../application/visitors/elements/claim.element';
 import { AuditVisitor } from '../../application/visitors/audit.visitor';
 import { TextSimilarityVisitor } from '../../application/visitors/text-similarity.visitor';
+import { OutboxService } from '../../application/services/outbox.service';
 import { AuditAction } from '../../application/decorators/audit-action.decorator';
 import { AntiCorruptionLayerService } from '../acl/anti-corruption-layer.service';
 
@@ -38,14 +39,16 @@ export class ClaimsController {
     private readonly claimsService: ClaimsService,
     private readonly claimsServiceProxy: ClaimsServiceProxy,
     private readonly prisma: PrismaService,
+    private readonly outboxService: OutboxService,
     private readonly antiCorruptionLayer: AntiCorruptionLayerService,
   ) {}
 
   @AuditAction('CLAIM_CREATED')
   @Post()
-  async create(@Body() createClaimDto: CreateClaimDto) {
+  async create(@Body() createClaimDto: CreateClaimDto, @Req() request: Request) {
+    const actorContext = this.getAuditContextFromRequest(request);
     const normalizedInput = this.antiCorruptionLayer.normalizeCreateClaimInput(createClaimDto);
-    const createdClaim = await this.claimsService.create(normalizedInput);
+    const createdClaim = await this.claimsService.create(normalizedInput, actorContext);
 
     return this.antiCorruptionLayer.toClaimResponse(createdClaim, Role.STUDENT);
   }
@@ -98,15 +101,16 @@ export class ClaimsController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @Req() request: Request) {
     const context = this.getContextFromRequest(request);
-    const updatedClaim = await this.claimsService.update(id, updateClaimDto);
+    const actorContext = this.getAuditContextFromRequest(request);
+    const updatedClaim = await this.claimsService.update(id, updateClaimDto, actorContext);
 
     return this.antiCorruptionLayer.toClaimResponse(updatedClaim, context.role as Role);
   }
 
   @AuditAction('CLAIM_DELETED')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.claimsService.remove(id);
+  remove(@Param('id') id: string, @Req() request: Request) {
+    return this.claimsService.remove(id, this.getAuditContextFromRequest(request));
   }
 
   @AuditAction('CLAIM_VERIFIED')
@@ -143,17 +147,34 @@ export class ClaimsController {
     try {
       await identityHandler.handle({ claim });
 
-      const approvedClaim = await this.prisma.claim.update({
-        where: { id },
-        data: {
-          status: ClaimStatus.APPROVED,
-          rejectionReason: null,
-        },
-        include: {
-          user: true,
-          object: true,
-          evidences: true,
-        },
+      const actorContext = this.getAuditContextFromRequest(request);
+
+      const approvedClaim = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.claim.update({
+          where: { id },
+          data: {
+            status: ClaimStatus.APPROVED,
+            rejectionReason: null,
+          },
+          include: {
+            user: true,
+            object: true,
+            evidences: true,
+          },
+        });
+
+        await this.outboxService.enqueueAuditEvent(tx, {
+          action: 'CLAIM_VERIFIED',
+          entityType: 'CLAIM',
+          entityId: updated.id,
+          actorId: actorContext.actorId,
+          actorRole: actorContext.actorRole,
+          ipAddress: actorContext.ipAddress,
+          payload: { claim: updated },
+          result: 'SUCCESS',
+        });
+
+        return updated;
       });
 
       return {
@@ -162,13 +183,33 @@ export class ClaimsController {
       };
     } catch (error) {
       const rejectionDetails = this.getRejectionDetails(error);
+      const actorContext = this.getAuditContextFromRequest(request);
 
-      const rejectedClaim = await this.prisma.claim.update({
-        where: { id },
-        data: {
-          status: ClaimStatus.REJECTED,
-          rejectionReason: rejectionDetails.reason,
-        },
+      const rejectedClaim = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.claim.update({
+          where: { id },
+          data: {
+            status: ClaimStatus.REJECTED,
+            rejectionReason: rejectionDetails.reason,
+          },
+        });
+
+        await this.outboxService.enqueueAuditEvent(tx, {
+          action: 'CLAIM_VERIFIED',
+          entityType: 'CLAIM',
+          entityId: updated.id,
+          actorId: actorContext.actorId,
+          actorRole: actorContext.actorRole,
+          ipAddress: actorContext.ipAddress,
+          payload: {
+            claim: updated,
+            rejection: rejectionDetails,
+          },
+          result: 'FAILURE',
+          details: rejectionDetails.reason,
+        });
+
+        return updated;
       });
 
       throw new HttpException(
@@ -261,6 +302,20 @@ export class ClaimsController {
     return {
       handler: 'UnknownHandler',
       reason: 'Error inesperado durante la verificación de la reclamación.',
+    };
+  }
+
+  private getAuditContextFromRequest(request: Request) {
+    const userIdHeader = request.headers['x-user-id'];
+    const roleHeader = request.headers['x-user-role'];
+
+    const actorId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader;
+    const actorRole = Array.isArray(roleHeader) ? roleHeader[0] : roleHeader;
+
+    return {
+      actorId: actorId ?? 'system',
+      actorRole: actorRole ?? 'unknown',
+      ipAddress: request.ip || request.connection?.remoteAddress || 'unknown',
     };
   }
 

@@ -8,6 +8,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditLogInterceptor } from '../application/interceptors/audit-log.interceptor';
 import { ServiceDiscoveryModule } from './service-discovery/service-discovery.module';
+import { OutboxPublisherService } from './outbox-publisher.service';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ServiceDiscoveryModule } from './service-discovery/service-discovery.mo
   controllers: [AppController],
   providers: [
     AppService,
+    OutboxPublisherService,
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLogInterceptor,

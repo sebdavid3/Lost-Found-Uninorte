@@ -45,7 +45,7 @@ Abril 2026
 1. Problema y solucion propuesta
 2. Estilo arquitectonico principal
 3. Patrones arquitectonicos asignados
-4. Desarrollo del patron implementado: Audit Log
+4. Desarrollo de patrones implementados: Audit Log + Service Discovery
 5. Diagramas y responsabilidades por integrante
 6. Cierre y plan de completitud
 
@@ -57,7 +57,7 @@ Abril 2026
 | :--- | :--- | :--- |
 | Andres Carrero | Saga | En diseno |
 | Sebastian Ibanez | Audit Log | Implementado |
-| Ayen Henriquez | Service Discovery | En diseno |
+| Ayen Henriquez | Service Discovery | Implementado (claims-service) |
 | Luis Robles | Outbox Pattern | En diseno |
 | Andres Serrano | Anti-Corruption Layer | En diseno |
 
@@ -101,9 +101,13 @@ Frontend
 API Gateway logical (futuro)
    |
 claims-service  <->  broker (RabbitMQ)  <->  audit-service
+          |
+ service registry (Consul)*
    |                                         |
 claims-db                                  audit-db
 ```
+
+\* Consul ya se usa en el codigo para Service Discovery. Para demo local reproducible debe estar disponible (agregar a compose o usar Consul externo).
 
 Justificacion:
 
@@ -119,7 +123,7 @@ Justificacion:
 | :--- | :--- | :--- |
 | Saga | Coordinacion distribuida del flujo | Orquestador de procesos |
 | Audit Log | Trazabilidad inmutable | audit-service |
-| Service Discovery | Resolucion dinamica de servicios | Registro/descubrimiento |
+| Service Discovery | Resolucion dinamica de servicios | Consul + modulo `service-discovery` en claims-service |
 | Outbox | Consistencia BD-eventos | Componente outbox |
 | ACL | Aislar contratos externos | Adaptadores de frontera |
 
@@ -261,7 +265,100 @@ Resultado:
 
 ---
 
-# Patron 1 - Saga (Placeholder)
+<!-- _backgroundColor: #117a65 -->
+<!-- _color: white -->
+<!-- _class: lead -->
+
+# Patron Implementado
+
+## Service Discovery
+### Registro y descubrimiento dinamico
+
+**Integrante: Ayen Henriquez**
+
+---
+
+# Service Discovery - Problema Especifico
+
+Necesidad:
+
+- Evitar URLs hardcodeadas entre servicios.
+- Poder escalar instancias y seguir resolviendo por nombre logico.
+- Detectar instancias caidas con health checks.
+
+Riesgos sin este patron:
+
+- Configuraciones rigidas por entorno.
+- Rotura al escalar/redistribuir contenedores.
+- Mayor tiempo de recuperacion ante fallos parciales.
+
+---
+
+<!-- _class: compact -->
+
+# Service Discovery - Implementacion (Consul)
+
+Ubicacion en codigo:
+
+- `services/claims-service/src/infrastructure/service-discovery/service-discovery.module.ts`
+- `services/claims-service/src/infrastructure/service-discovery/service-discovery.service.ts`
+- `services/claims-service/src/infrastructure/app.controller.ts`
+- `services/claims-service/src/infrastructure/app.module.ts`
+
+Piezas:
+
+- Registro automatico al iniciar: `onModuleInit()` → `agent.service.register()`.
+- Desregistro al apagar: `onModuleDestroy()` → `agent.service.deregister()`.
+- Discovery: `discoverService(serviceName)` retorna una instancia saludable.
+- Visualizacion: `getAllInstances(serviceName)` para la demo.
+
+---
+
+# Service Discovery - Endpoints de soporte
+
+Health check (para Consul y liveness):
+
+- `GET /health` → `{ status, service, version, uptime, timestamp }`
+
+Demo de registry en tiempo real:
+
+- `GET /registry/:serviceName`
+- Ejemplo: `GET /registry/claims-service`
+  - retorna `totalInstances` + IDs/address/port/tags
+
+---
+
+# Service Discovery - Demo sugerida
+
+1. Verificar salud de la instancia:
+        - `GET /health`
+2. Ver instancias registradas:
+        - `GET /registry/claims-service`
+3. (Opcional) Escalar y repetir:
+        - `docker compose scale claims-service=3`
+
+Nota: requiere Consul disponible (en compose o externo).
+
+---
+
+<!-- _class: compact -->
+
+# Service Discovery - Variables de Entorno
+
+Con defaults para Docker:
+
+- `CONSUL_HOST` (default: `consul`)
+- `CONSUL_PORT` (default: `8500`)
+- `SERVICE_HOST` (default: `claims-service`)
+- `SERVICE_PORT` (default: `3000`)
+
+Nota:
+
+- Si Consul no esta disponible, el servicio NO se cae: solo registra error y continua el arranque.
+
+---
+
+# Patron - Saga (Placeholder)
 
 Estado: En diseno
 
@@ -274,33 +371,20 @@ Completar en esta seccion:
 
 ---
 
-# Patron 3 - Service Discovery (Placeholder)
+# Patron - Outbox Pattern (Placeholder)
 
 Estado: En diseno
 
 Completar en esta seccion:
 
-- Estrategia de descubrimiento.
-- Registro de servicios.
-- Resolucion de endpoint por nombre.
-- Manejo de fallos y health.
+ - Tabla outbox y esquema.
+ - Publicador/reintentos/idempotencia.
+ - Integracion con transaccion del dominio.
+ - Garantias de entrega.
 
 ---
 
-# Patron 4 - Outbox Pattern (Placeholder)
-
-Estado: En diseno
-
-Completar en esta seccion:
-
-- Tabla outbox y esquema.
-- Publicador/reintentos/idempotencia.
-- Integracion con transaccion del dominio.
-- Garantias de entrega.
-
----
-
-# Patron 5 - Anti-Corruption Layer (Placeholder)
+# Patron - Anti-Corruption Layer (Placeholder)
 
 Estado: En diseno
 
@@ -333,7 +417,7 @@ Regla:
 | :--- | :--- | :--- |
 | Andres Carrero | Saga | Diagrama de orquestacion + flujo |
 | Sebastian Ibanez | Audit Log | Flujo eventos + hash chain + endpoint integridad |
-| Ayen Henriquez | Service Discovery | Estrategia de registro y resolucion |
+| Ayen Henriquez | Service Discovery | `GET /health` + `GET /registry/:serviceName` + registro/desregistro en Consul |
 | Luis Robles | Outbox | Flujo transaccion + publicacion garantizada |
 | Andres Serrano | ACL | Adaptadores y traduccion de contratos |
 
@@ -344,13 +428,15 @@ Regla:
 Estado actual:
 
 - Audit Log implementado y validado.
+- Service Discovery implementado en `claims-service` (Consul + endpoints de demo).
 - Demas patrones definidos a nivel de arquitectura objetivo.
 
 Siguiente paso del equipo:
 
 1. Completar evidencia tecnica de cada patron.
-2. Cerrar diagramas C4/BD/Figma.
-3. Ensayar exposicion con preguntas por integrante.
+2. Hacer reproducible la demo de Service Discovery (Consul disponible en compose o guia de ejecucion).
+3. Cerrar diagramas C4/BD/Figma.
+4. Ensayar exposicion con preguntas por integrante.
 
 ---
 

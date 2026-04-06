@@ -17,7 +17,7 @@ Coordinador de la entrega: TBD
 | 6.2 Actores del sistema | TBD | LISTO PARA REVISION | TBD | Tabla actor-responsabilidad-interaccion |
 | 6.3 Requerimientos | TBD | LISTO PARA REVISION | TBD | 10 RF + 5 RNF medibles |
 | 6.4 Estilo arquitectonico | TBD | LISTO PARA REVISION | TBD | Justificacion + trade-offs |
-| 6.5 Patrones de arquitectura | TBD | EN PROGRESO | TBD | Tabla completa por estudiante |
+| 6.5 Patrones de arquitectura | TBD | EN PROGRESO | TBD | Tabla completa + evidencia en codigo por patron (Service Discovery ya implementado en `claims-service`) |
 | 6.6 Diagramas obligatorios | TBD | NO INICIADO | TBD | C4 + BD + Figma enlazados |
 | Exposicion (diapositivas) | TBD | NO INICIADO | TBD | Guion y mapa de responsabilidades |
 
@@ -26,6 +26,7 @@ Coordinador de la entrega: TBD
 - Riesgo 1: Inconsistencia entre diagramas y codigo.
 - Riesgo 2: Patrones asignados sin evidencia tecnica.
 - Riesgo 3: Faltantes en requerimientos no funcionales medibles.
+- Riesgo 4: Service Discovery requiere Consul disponible; si no se agrega a `docker-compose.yml` la demo no es reproducible localmente.
 
 ## Acuerdos del equipo
 

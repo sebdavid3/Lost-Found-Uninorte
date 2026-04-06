@@ -37,7 +37,7 @@ Fecha de actualizacion: 2026-04-05
 
 - RF-04 a RF-07 se trazan principalmente a `claims-service`.
 - RF-08 corresponde a Saga (orquestacion distribuida del flujo).
-- RF-09 corresponde a Service Discovery (resolucion dinamica de servicios).
+- RF-09 corresponde a Service Discovery (resolucion dinamica de servicios). Evidencia actual: modulo `service-discovery` en `claims-service` + endpoints de soporte `GET /health` y `GET /registry/:serviceName`.
 - RF-10 corresponde a Outbox Pattern (consistencia BD + eventos).
 - RF-11 corresponde a Anti-Corruption Layer (adaptacion de contratos externos).
 - RF-12 a RF-14 y RNF-05 se trazan principalmente a `audit-service` (Audit Log).

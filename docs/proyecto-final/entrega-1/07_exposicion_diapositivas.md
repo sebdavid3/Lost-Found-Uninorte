@@ -1,8 +1,8 @@
 # Exposicion obligatoria - Entrega 1
 
-Estado: NO INICIADO
+Estado: EN PROGRESO
 Responsable: TBD
-Fecha de actualizacion: TBD
+Fecha de actualizacion: 2026-04-05
 
 ## Contenido minimo de diapositivas
 
@@ -28,9 +28,23 @@ Fecha de actualizacion: TBD
 | :--- | :--- | :--- | :--- |
 | Andres Carrero | Saga | Donde vive, flujo, problema que resuelve | NO INICIADO |
 | Sebastian Ibanez | Audit Log | Donde vive, flujo, integridad hash-chain | EN PROGRESO |
-| Ayen Henriquez | Service Discovery | Donde vive, estrategia de descubrimiento | NO INICIADO |
+| Ayen Henriquez | Service Discovery | Consul como registry, registro/desregistro automatico, health checks y demo `/registry` | EN PROGRESO |
 | Luis Robles | Outbox Pattern | Donde vive, consistencia transaccional | NO INICIADO |
 | Andres Serrano | Anti-Corruption Layer | Donde vive, adaptacion de contratos externos | NO INICIADO |
+
+## Demo sugerida - Service Discovery (2-3 minutos)
+
+Objetivo: evidenciar que el servicio se registra en un registry y que se pueden consultar instancias saludables sin hardcodear direcciones.
+
+1. Mostrar endpoint de salud:
+	- `GET /health` en `claims-service` retorna estado + uptime.
+2. Mostrar registro de instancias:
+	- `GET /registry/claims-service` retorna `totalInstances` e IDs de instancia.
+3. (Opcional si se escala) Escalar instancias y repetir consulta:
+	- `docker compose scale claims-service=3`
+	- repetir `GET /registry/claims-service` para ver varias instancias.
+
+Nota: para que la demo funcione localmente, Consul debe estar disponible (contenedor en compose o servicio externo) porque el registro se hace contra el host `CONSUL_HOST`.
 
 ## Evaluacion individual (preparacion)
 

@@ -67,6 +67,7 @@ Un enfoque monolitico concentraria ambas preocupaciones y aumentaria el acoplami
 - Clean Architecture interna por servicio.
 - Contenedorizacion y orquestacion local con Docker Compose.
 - Migraciones versionadas para trazabilidad estructural en `audit-service`.
+- Service Discovery implementado con Consul como registro de servicios (registro/desregistro automatico en ciclo de vida de NestJS).
 
 ## Vista general de microservicios (actual y objetivo)
 
@@ -74,6 +75,10 @@ Actuales:
 
 - `claims-service`: operaciones del dominio de reclamaciones y objetos.
 - `audit-service`: trazabilidad inmutable y verificacion de integridad.
+
+Servicios de soporte ya implementados / en integracion:
+
+- `consul` (registry): registro y consulta de instancias para Service Discovery.
 
 Objetivo de arquitectura segun patrones asignados:
 

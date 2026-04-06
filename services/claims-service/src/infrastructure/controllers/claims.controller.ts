@@ -30,6 +30,8 @@ import { ClaimElement, ClaimWithRelations } from '../../application/visitors/ele
 import { AuditVisitor } from '../../application/visitors/audit.visitor';
 import { TextSimilarityVisitor } from '../../application/visitors/text-similarity.visitor';
 import { OutboxService } from '../../application/services/outbox.service';
+import { AuditAction } from '../../application/decorators/audit-action.decorator';
+import { AntiCorruptionLayerService } from '../acl/anti-corruption-layer.service';
 
 @Controller('claims')
 export class ClaimsController {
@@ -38,53 +40,80 @@ export class ClaimsController {
     private readonly claimsServiceProxy: ClaimsServiceProxy,
     private readonly prisma: PrismaService,
     private readonly outboxService: OutboxService,
+    private readonly antiCorruptionLayer: AntiCorruptionLayerService,
   ) {}
 
+  @AuditAction('CLAIM_CREATED')
   @Post()
-  create(@Body() createClaimDto: CreateClaimDto, @Req() request: Request) {
-    return this.claimsService.create(createClaimDto, this.getAuditContextFromRequest(request));
+  async create(@Body() createClaimDto: CreateClaimDto, @Req() request: Request) {
+    const actorContext = this.getAuditContextFromRequest(request);
+    const normalizedInput = this.antiCorruptionLayer.normalizeCreateClaimInput(createClaimDto);
+    const createdClaim = await this.claimsService.create(normalizedInput, actorContext);
+
+    return this.antiCorruptionLayer.toClaimResponse(createdClaim, Role.STUDENT);
   }
 
+  @AuditAction('CLAIM_LIST_READ')
   @Get()
-  findAll(@Req() request: Request) {
+  async findAll(@Req() request: Request) {
     const context = this.getContextFromRequest(request);
-    return this.claimsServiceProxy.findAll(context);
+    const claims = await this.claimsServiceProxy.findAll(context);
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get('filter/status')
-  findByStatus(@Req() request: Request, @Query('status') status: ClaimStatus) {
+  async findByStatus(@Req() request: Request, @Query('status') status: ClaimStatus) {
     const context = this.getContextFromRequest(request);
     const normalizedStatus = this.parseClaimStatus(status);
-    return this.claimsServiceProxy.findByStatus(normalizedStatus, context);
+    const claims = await this.claimsServiceProxy.findByStatus(normalizedStatus, context);
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get('filter/date-range')
-  findByDateRange(
+  async findByDateRange(
     @Req() request: Request,
     @Query('start') start: string,
     @Query('end') end: string,
   ) {
     const context = this.getContextFromRequest(request);
     const { parsedStart, parsedEnd } = this.parseDateRange(start, end);
-    return this.claimsServiceProxy.findByFoundDateRange(parsedStart, parsedEnd, context);
+    const claims = await this.claimsServiceProxy.findByFoundDateRange(
+      parsedStart,
+      parsedEnd,
+      context,
+    );
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
+  @AuditAction('CLAIM_READ')
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() request: Request) {
+  async findOne(@Param('id') id: string, @Req() request: Request) {
     const context = this.getContextFromRequest(request);
-    return this.claimsServiceProxy.findOne(id, context);
+    const claim = await this.claimsServiceProxy.findOne(id, context);
+
+    return this.antiCorruptionLayer.toClaimResponse(claim, context.role as Role);
   }
 
+  @AuditAction('CLAIM_UPDATED')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @Req() request: Request) {
-    return this.claimsService.update(id, updateClaimDto, this.getAuditContextFromRequest(request));
+  async update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @Req() request: Request) {
+    const context = this.getContextFromRequest(request);
+    const actorContext = this.getAuditContextFromRequest(request);
+    const updatedClaim = await this.claimsService.update(id, updateClaimDto, actorContext);
+
+    return this.antiCorruptionLayer.toClaimResponse(updatedClaim, context.role as Role);
   }
 
+  @AuditAction('CLAIM_DELETED')
   @Delete(':id')
   remove(@Param('id') id: string, @Req() request: Request) {
     return this.claimsService.remove(id, this.getAuditContextFromRequest(request));
   }
 
+  @AuditAction('CLAIM_VERIFIED')
   @Post(':id/verify')
   async verify(@Param('id') id: string, @Req() request: Request) {
     const context = this.getContextFromRequest(request);
@@ -150,7 +179,7 @@ export class ClaimsController {
 
       return {
         message: 'Reclamación verificada exitosamente y aprobada.',
-        claim: approvedClaim,
+        claim: this.antiCorruptionLayer.toClaimResponse(approvedClaim, context.role),
       };
     } catch (error) {
       const rejectionDetails = this.getRejectionDetails(error);

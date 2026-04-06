@@ -1,13 +1,13 @@
 FROM node:20-alpine AS deps
+RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY prisma ./prisma/
-
-RUN npm ci --legacy-peer-deps
-
+RUN npm install --legacy-peer-deps
 FROM node:20-alpine AS builder
+RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /usr/src/app
 
@@ -16,9 +16,9 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run build
-RUN npm prune --omit=dev --legacy-peer-deps
 
 FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /usr/src/app
 

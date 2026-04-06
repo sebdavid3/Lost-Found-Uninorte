@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15-alpine
@@ -33,6 +35,16 @@ services:
       timeout: 5s
       retries: 5
 
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: lost_found_consul
+    ports:
+      - '8500:8500' # UI + HTTP API
+    command: agent -dev -client=0.0.0.0
+    networks:
+      - lost_found_network
+    restart: unless-stopped
+
   claims-service:
     build:
       context: ./services/claims-service
@@ -44,6 +56,10 @@ services:
       DATABASE_URL: postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       NODE_ENV: development
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_HOST: claims-service
+      SERVICE_PORT: 3000
     volumes:
       - ./services/claims-service/src:/usr/src/app/src
       - ./services/claims-service/prisma:/usr/src/app/prisma
@@ -52,6 +68,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      consul:
+        condition: service_started
     networks:
       - lost_found_network
     healthcheck:
@@ -59,7 +77,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run seed:objects && npm run start:dev"
+    command: sh -c "npx prisma migrate deploy && npm run seed:objects && npm run start:prod"
 
   frontend:
     build:
@@ -75,9 +93,58 @@ services:
       - lost_found_network
     restart: unless-stopped
 
+  audit-db:
+    image: postgres:15-alpine
+    container_name: lost_found_audit_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: audit_log_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - audit_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d audit_log_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lost_found_network
+    restart: unless-stopped
+
+  audit-service:
+    build:
+      context: ./services/audit-service
+      dockerfile: Dockerfile
+    container_name: lost_found_audit_service
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://admin:password123@audit-db:5432/audit_log_db?schema=public
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      NODE_ENV: development
+    volumes:
+      - ./services/audit-service/src:/usr/src/app/src
+      - ./services/audit-service/prisma:/usr/src/app/prisma
+    depends_on:
+      audit-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lost_found_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/audit-log"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+
 networks:
   lost_found_network:
     driver: bridge
 
 volumes:
   postgres_data:
+  audit_postgres_data:

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ClaimsService } from './claims.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { ClaimFactoryProvider } from './factories/claim-factory.provider';
+import { ClaimsService } from '../application/services/claims.service';
+import { PrismaService } from '../infrastructure/prisma.service';
+import { ClaimFactoryProvider } from '../application/factories/claim-factory.provider';
 
 describe('ClaimsService', () => {
   let service: ClaimsService;

@@ -1,18 +1,12 @@
 # compiled output
-<<<<<<< HEAD
-dist/
-build/
-
-# dependencies
-node_modules/
-.gemini/
-=======
 /dist
 backend/dist/
 /node_modules
 .gemini/
+/build
 
->>>>>>> af53bcc1a27495652525bc77a91a9a38d6bbafe8
+# dependencies
+node_modules/
 # Logs
 logs
 *.log

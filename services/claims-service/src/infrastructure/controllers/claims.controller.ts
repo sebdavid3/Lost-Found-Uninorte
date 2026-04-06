@@ -29,6 +29,7 @@ import { ClaimVerificationException } from '../../application/handlers/claim-ver
 import { ClaimElement, ClaimWithRelations } from '../../application/visitors/elements/claim.element';
 import { AuditVisitor } from '../../application/visitors/audit.visitor';
 import { TextSimilarityVisitor } from '../../application/visitors/text-similarity.visitor';
+import { OutboxService } from '../../application/services/outbox.service';
 
 @Controller('claims')
 export class ClaimsController {
@@ -36,11 +37,12 @@ export class ClaimsController {
     private readonly claimsService: ClaimsService,
     private readonly claimsServiceProxy: ClaimsServiceProxy,
     private readonly prisma: PrismaService,
+    private readonly outboxService: OutboxService,
   ) {}
 
   @Post()
-  create(@Body() createClaimDto: CreateClaimDto) {
-    return this.claimsService.create(createClaimDto);
+  create(@Body() createClaimDto: CreateClaimDto, @Req() request: Request) {
+    return this.claimsService.create(createClaimDto, this.getAuditContextFromRequest(request));
   }
 
   @Get()
@@ -74,13 +76,13 @@ export class ClaimsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto) {
-    return this.claimsService.update(id, updateClaimDto);
+  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @Req() request: Request) {
+    return this.claimsService.update(id, updateClaimDto, this.getAuditContextFromRequest(request));
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.claimsService.remove(id);
+  remove(@Param('id') id: string, @Req() request: Request) {
+    return this.claimsService.remove(id, this.getAuditContextFromRequest(request));
   }
 
   @Post(':id/verify')
@@ -116,17 +118,34 @@ export class ClaimsController {
     try {
       await identityHandler.handle({ claim });
 
-      const approvedClaim = await this.prisma.claim.update({
-        where: { id },
-        data: {
-          status: ClaimStatus.APPROVED,
-          rejectionReason: null,
-        },
-        include: {
-          user: true,
-          object: true,
-          evidences: true,
-        },
+      const actorContext = this.getAuditContextFromRequest(request);
+
+      const approvedClaim = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.claim.update({
+          where: { id },
+          data: {
+            status: ClaimStatus.APPROVED,
+            rejectionReason: null,
+          },
+          include: {
+            user: true,
+            object: true,
+            evidences: true,
+          },
+        });
+
+        await this.outboxService.enqueueAuditEvent(tx, {
+          action: 'CLAIM_VERIFIED',
+          entityType: 'CLAIM',
+          entityId: updated.id,
+          actorId: actorContext.actorId,
+          actorRole: actorContext.actorRole,
+          ipAddress: actorContext.ipAddress,
+          payload: { claim: updated },
+          result: 'SUCCESS',
+        });
+
+        return updated;
       });
 
       return {
@@ -135,13 +154,33 @@ export class ClaimsController {
       };
     } catch (error) {
       const rejectionDetails = this.getRejectionDetails(error);
+      const actorContext = this.getAuditContextFromRequest(request);
 
-      const rejectedClaim = await this.prisma.claim.update({
-        where: { id },
-        data: {
-          status: ClaimStatus.REJECTED,
-          rejectionReason: rejectionDetails.reason,
-        },
+      const rejectedClaim = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.claim.update({
+          where: { id },
+          data: {
+            status: ClaimStatus.REJECTED,
+            rejectionReason: rejectionDetails.reason,
+          },
+        });
+
+        await this.outboxService.enqueueAuditEvent(tx, {
+          action: 'CLAIM_VERIFIED',
+          entityType: 'CLAIM',
+          entityId: updated.id,
+          actorId: actorContext.actorId,
+          actorRole: actorContext.actorRole,
+          ipAddress: actorContext.ipAddress,
+          payload: {
+            claim: updated,
+            rejection: rejectionDetails,
+          },
+          result: 'FAILURE',
+          details: rejectionDetails.reason,
+        });
+
+        return updated;
       });
 
       throw new HttpException(
@@ -234,6 +273,20 @@ export class ClaimsController {
     return {
       handler: 'UnknownHandler',
       reason: 'Error inesperado durante la verificación de la reclamación.',
+    };
+  }
+
+  private getAuditContextFromRequest(request: Request) {
+    const userIdHeader = request.headers['x-user-id'];
+    const roleHeader = request.headers['x-user-role'];
+
+    const actorId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader;
+    const actorRole = Array.isArray(roleHeader) ? roleHeader[0] : roleHeader;
+
+    return {
+      actorId: actorId ?? 'system',
+      actorRole: actorRole ?? 'unknown',
+      ipAddress: request.ip || request.connection?.remoteAddress || 'unknown',
     };
   }
 

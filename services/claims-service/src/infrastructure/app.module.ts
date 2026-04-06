@@ -7,6 +7,7 @@ import { ObjectsModule } from './objects.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditLogInterceptor } from '../application/interceptors/audit-log.interceptor';
+import { ServiceDiscoveryModule } from './service-discovery/service-discovery.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuditLogInterceptor } from '../application/interceptors/audit-log.inter
         },
       },
     ]),
+    ServiceDiscoveryModule,
   ],
   controllers: [AppController],
   providers: [

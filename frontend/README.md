@@ -18,6 +18,9 @@ Interfaz web para el sistema Lost & Found Uninorte, desarrollada con React y Vit
 Para instrucciones detalladas de ejecución y configuración, por favor consulta el [README principal en la raíz del proyecto](../README.md).
 
 ```bash
+# Variables de entorno
+cp .env.example .env
+
 # Instalación
 npm install
 
@@ -27,3 +30,7 @@ npm run dev
 # Build para producción
 npm run build
 ```
+
+## Variables de entorno
+- `VITE_API_BASE_URL`: URL base completa de la API (ejemplo: `http://localhost:3000`).
+- `VITE_API_PORT`: alternativa opcional si no defines URL base completa.

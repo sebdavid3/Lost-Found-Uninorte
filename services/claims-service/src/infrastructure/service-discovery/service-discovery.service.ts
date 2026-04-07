@@ -14,12 +14,29 @@ export class ServiceDiscoveryService
   private consul: any;
   private readonly serviceId: string;
   private readonly serviceName = 'claims-service';
+  private readonly consulHost: string;
+  private readonly consulPort: number;
+  private readonly serviceAddress: string;
+  private readonly servicePort: number;
 
   constructor() {
+    this.consulHost = process.env.CONSUL_HOST || '';
+    this.consulPort = Number(process.env.CONSUL_PORT || '');
+    this.serviceAddress = process.env.SERVICE_HOST || '';
+    this.servicePort = Number(process.env.SERVICE_PORT || '');
+
+    if (!this.consulHost || Number.isNaN(this.consulPort)) {
+      throw new Error('CONSUL_HOST y CONSUL_PORT son obligatorios para Service Discovery.');
+    }
+
+    if (!this.serviceAddress || Number.isNaN(this.servicePort)) {
+      throw new Error('SERVICE_HOST y SERVICE_PORT son obligatorios para registrar el servicio.');
+    }
+
     // Lee las variables de entorno definidas en docker-compose.yml
     this.consul = new Consul({
-      host: process.env.CONSUL_HOST ?? 'consul',
-      port: Number(process.env.CONSUL_PORT) || 8500,
+      host: this.consulHost,
+      port: this.consulPort,
       promisify: true,
     });
 
@@ -46,8 +63,8 @@ export class ServiceDiscoveryService
   // Consul almacena: nombre, dirección, puerto, tags y configuración
   // del health check para saber si la instancia está viva.
   private async registerService(): Promise<void> {
-    const address = process.env.SERVICE_HOST ?? 'claims-service';
-    const port = parseInt(process.env.SERVICE_PORT ?? '3000');
+    const address = this.serviceAddress;
+    const port = this.servicePort;
 
     try {
       await this.consul.agent.service.register({

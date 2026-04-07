@@ -4,12 +4,18 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const rabbitMqUrl = process.env.RABBITMQ_URL;
+  const port = Number(process.env.PORT || process.env.SERVICE_PORT || '3001');
+
+  if (!rabbitMqUrl || rabbitMqUrl.trim() === '') {
+    throw new Error('RABBITMQ_URL no esta configurada para audit-service.');
+  }
 
   // Configure RabbitMQ consumer
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'],
+      urls: [rabbitMqUrl],
       queue: 'audit_events_queue',
       queueOptions: {
         durable: true,
@@ -20,9 +26,9 @@ async function bootstrap() {
   await app.startAllMicroservices();
 
   // Listen HTTP for REST endpoints
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(port);
   console.log(
-    'Audit Service is running on port 3001 and listening to RMQ: audit_events_queue',
+    `Audit Service is running on port ${port} and listening to RMQ: audit_events_queue`,
   );
 }
 void bootstrap();

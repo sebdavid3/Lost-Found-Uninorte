@@ -54,8 +54,8 @@ Evita problemas de base de datos levantando el stack Docker y poblando (seeding)
 
 ```bash
 # Entrar a la app, levantar la db y el servidor
-docker-compose up -d db
-cd backend
+docker compose up -d db
+cd services/claims-service
 npm install
 npm run start:dev
 ```
@@ -63,8 +63,8 @@ npm run start:dev
 En otra terminal, corre los datos de prueba (`User`, `Object(Common)` sin foto, `Object(Electronic)` con foto):
 
 ```bash
-cd backend
-npx ts-node -r dotenv/config prisma/seed.ts
+cd services/claims-service
+npm run seed:objects
 npx prisma studio
 ```
 

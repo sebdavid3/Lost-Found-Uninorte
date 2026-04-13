@@ -1,6 +1,22 @@
 import type { LostObject, Claim, Evidence } from '../types';
 
-const API_BASE_URL = 'http://localhost:3000'; // Ajustar según el puerto real del backend
+const DEFAULT_API_PORT = '3000';
+
+function getApiBaseUrl(): string {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/+$/, '');
+  }
+
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  const apiPort = (import.meta.env.VITE_API_PORT || DEFAULT_API_PORT).trim();
+
+  return `${protocol}//${hostname}:${apiPort}`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface RequestOptions extends RequestInit {
   role?: string;
@@ -9,12 +25,13 @@ interface RequestOptions extends RequestInit {
 
 async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { role, userId, ...fetchOptions } = options;
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
   const headers = new Headers(fetchOptions.headers || {});
   if (role) headers.append('x-user-role', role);
   if (userId) headers.append('x-user-id', userId);
   
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, {
     ...fetchOptions,
     headers,
   });

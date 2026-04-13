@@ -1,4 +1,4 @@
-# Lost & Found Uninorte - Backend
+# Lost & Found Uninorte - Claims Service
 
 Este es el módulo de servidor del sistema Lost & Found Uninorte, desarrollado con NestJS.
 
@@ -17,6 +17,12 @@ Este es el módulo de servidor del sistema Lost & Found Uninorte, desarrollado c
 ## Ejecución
 Para instrucciones detalladas de ejecución y configuración, por favor consulta el [README principal en la raíz del proyecto](../README.md).
 
+Para ejecución local del servicio, copia primero variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
 ## Tests
 ```bash
 # Unit tests
@@ -24,4 +30,7 @@ npm run test
 
 # E2E tests
 npm run test:e2e
+
+# Script de endpoints (requiere URL base de API)
+CLAIMS_API_BASE_URL=http://<host>:<port> node test-endpoints.js
 ```

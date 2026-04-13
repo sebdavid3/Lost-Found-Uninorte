@@ -5,15 +5,15 @@ services:
     image: postgres:15-alpine
     container_name: lost_found_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: lost_found_uninorte
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password123}
+      POSTGRES_DB: ${DB_NAME:-lost_found_uninorte}
     ports:
-      - '5432:5432'
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d lost_found_uninorte"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -25,8 +25,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: lost_found_mq
     ports:
-      - '5672:5672'   # Puerto de mensajes
-      - '15672:15672' # Panel de administración (user: guest, pass: guest)
+      - '${RABBITMQ_PORT:-5672}:5672'   # Puerto de mensajes
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672' # Panel de administración (user: guest, pass: guest)
     networks:
       - lost_found_network
     healthcheck:
@@ -39,7 +39,7 @@ services:
     image: hashicorp/consul:1.17
     container_name: lost_found_consul
     ports:
-      - '8500:8500' # UI + HTTP API
+      - '${CONSUL_PORT:-8500}:8500' # UI + HTTP API
     command: agent -dev -client=0.0.0.0
     networks:
       - lost_found_network
@@ -51,15 +51,16 @@ services:
       dockerfile: Dockerfile
     container_name: lost_found_claims_service
     ports:
-      - '3000:3000'
+      - '${CLAIMS_PUBLIC_PORT:-3000}:3000'
     environment:
-      DATABASE_URL: postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      NODE_ENV: development
-      CONSUL_HOST: consul
-      CONSUL_PORT: 8500
-      SERVICE_HOST: claims-service
-      SERVICE_PORT: 3000
+      DATABASE_URL: ${CLAIMS_DATABASE_URL:-postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      NODE_ENV: ${NODE_ENV:-development}
+      CONSUL_HOST: ${CONSUL_HOST:-consul}
+      CONSUL_PORT: ${CONSUL_PORT:-8500}
+      SERVICE_HOST: ${CLAIMS_SERVICE_HOST:-claims-service}
+      SERVICE_PORT: ${CLAIMS_SERVICE_PORT:-3000}
+      PORT: ${CLAIMS_SERVICE_PORT:-3000}
     volumes:
       - ./services/claims-service/src:/usr/src/app/src
       - ./services/claims-service/prisma:/usr/src/app/prisma
@@ -73,7 +74,7 @@ services:
     networks:
       - lost_found_network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3000}/\""]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -85,7 +86,7 @@ services:
       dockerfile: Dockerfile
     container_name: lost_found_frontend
     ports:
-      - '5173:80'
+      - '${FRONTEND_PUBLIC_PORT:-5173}:80'
     depends_on:
       claims-service:
         condition: service_healthy
@@ -97,15 +98,15 @@ services:
     image: postgres:15-alpine
     container_name: lost_found_audit_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: audit_log_db
+      POSTGRES_USER: ${AUDIT_DB_USER:-admin}
+      POSTGRES_PASSWORD: ${AUDIT_DB_PASSWORD:-password123}
+      POSTGRES_DB: ${AUDIT_DB_NAME:-audit_log_db}
     ports:
-      - '5433:5432'
+      - '${AUDIT_DB_PORT:-5433}:5432'
     volumes:
       - audit_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d audit_log_db"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -119,11 +120,13 @@ services:
       dockerfile: Dockerfile
     container_name: lost_found_audit_service
     ports:
-      - '3001:3001'
+      - '${AUDIT_PUBLIC_PORT:-3001}:3001'
     environment:
-      DATABASE_URL: postgresql://admin:password123@audit-db:5432/audit_log_db?schema=public
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      NODE_ENV: development
+      DATABASE_URL: ${AUDIT_DATABASE_URL:-postgresql://admin:password123@audit-db:5432/audit_log_db?schema=public}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
+      NODE_ENV: ${NODE_ENV:-development}
+      SERVICE_PORT: ${AUDIT_SERVICE_PORT:-3001}
+      PORT: ${AUDIT_SERVICE_PORT:-3001}
     volumes:
       - ./services/audit-service/src:/usr/src/app/src
       - ./services/audit-service/prisma:/usr/src/app/prisma
@@ -135,7 +138,7 @@ services:
     networks:
       - lost_found_network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/audit-log"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3001}/audit-log\""]
       interval: 10s
       timeout: 5s
       retries: 3

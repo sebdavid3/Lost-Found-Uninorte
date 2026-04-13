@@ -10,6 +10,12 @@ import { AuditLogInterceptor } from '../application/interceptors/audit-log.inter
 import { ServiceDiscoveryModule } from './service-discovery/service-discovery.module';
 import { OutboxPublisherService } from './outbox-publisher.service';
 
+const rabbitMqUrl = process.env.RABBITMQ_URL;
+
+if (!rabbitMqUrl || rabbitMqUrl.trim() === '') {
+  throw new Error('RABBITMQ_URL no esta configurada para claims-service.');
+}
+
 @Module({
   imports: [
     ClaimsModule,
@@ -20,7 +26,7 @@ import { OutboxPublisherService } from './outbox-publisher.service';
         name: 'AUDIT_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'],
+          urls: [rabbitMqUrl],
           queue: 'audit_events_queue',
           queueOptions: {
             durable: true,

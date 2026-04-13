@@ -56,6 +56,7 @@ Desde la raiz del repositorio:
 
 Solo este servicio (si usas ejecucion manual):
 
-1. `npm install`
-2. `npx prisma migrate deploy`
-3. `npm run start:prod`
+1. `cp .env.example .env`
+2. `npm install`
+3. `npx prisma migrate deploy`
+4. `npm run start:prod`

@@ -1,5 +1,5 @@
 # Lost & Found Uninorte
-[![NestJS](https://img.shields.io/badge/backend-NestJS-red.svg)](https://nestjs.com/)
+[![NestJS](https://img.shields.io/badge/claims--service-NestJS-red.svg)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/frontend-React-blue.svg)](https://react.dev/)
 [![Prisma](https://img.shields.io/badge/orm-Prisma-darkblue.svg)](https://www.prisma.io/)
 [![Docker](https://img.shields.io/badge/infra-Docker-blue.svg)](https://www.docker.com/)
@@ -13,6 +13,20 @@ Sistema integral para la gestión de objetos perdidos en la Universidad del Nort
 
 La forma recomendada de ejecutar el proyecto es utilizando Docker Compose, que orquestará la base de datos, el broker de mensajería y los servicios.
 
+### Preparar Variables de Entorno
+
+```bash
+# Variables para docker compose (infra y servicios)
+cp .env.example .env
+
+# Variables para frontend local (Vite)
+cp frontend/.env.example frontend/.env
+
+# Variables para ejecucion local por servicio (sin compose)
+cp services/claims-service/.env.example services/claims-service/.env
+cp services/audit-service/.env.example services/audit-service/.env
+```
+
 ```bash
 # Levantar todos los servicios (con Hot Reload en servicios)
 docker compose up --build -d
@@ -24,6 +38,10 @@ docker compose up --build -d
 - **Audit Service (API):** [http://localhost:3001](http://localhost:3001)
 - **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (user: `guest`, pass: `guest`)
 - **Prisma Studio (Local):** `cd services/claims-service && npx prisma studio`
+
+### Variables de Entorno (Frontend)
+- Ajustar `VITE_API_BASE_URL` según el entorno.
+- Si no se define `VITE_API_BASE_URL`, el frontend arma la URL con `window.location` + `VITE_API_PORT`.
 
 ### Nota de Infraestructura
 - `claims-service` aplica migraciones con `prisma migrate deploy`, ejecuta seed inicial y luego inicia la API.
@@ -90,46 +108,4 @@ Para mantener la uniformidad, todos los colaboradores deben seguir las reglas de
 # Pruebas e2e en el servicio de reclamaciones
 cd services/claims-service
 npm run test:e2e
-```
-
----
-
-## (Opcional) Guía Local para la carpeta `backend/`
-
-Este repositorio incluye una carpeta `backend/` con una API NestJS y Prisma (útil si quieren correr el backend de forma local fuera del stack de microservicios).
-
-### Requisitos Previos
-1. Node.js instalado.
-2. Docker Desktop en ejecución.
-
-### Pasos de instalación
-
-1. Levantar la base de datos PostgreSQL en background:
-```bash
-docker compose up -d db
-```
-
-2. Instalar dependencias y preparar variables de entorno:
-```bash
-cd backend
-npm install --legacy-peer-deps
-cp .env.example .env
-```
-
-3. Generar el cliente Prisma y aplicar migraciones:
-```bash
-npx prisma generate
-npx prisma migrate deploy
-```
-
-4. Sembrar datos de prueba y levantar el servidor:
-```bash
-npx ts-node prisma/seed.ts
-npm run start:dev
-```
-
-### Prisma Studio
-```bash
-cd backend
-npx prisma studio
 ```

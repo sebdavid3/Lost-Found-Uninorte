@@ -1,18 +1,10 @@
 # compiled output
-<<<<<<< HEAD
 dist/
 build/
 
 # dependencies
 node_modules/
 .gemini/
-=======
-/dist
-backend/dist/
-/node_modules
-.gemini/
-
->>>>>>> af53bcc1a27495652525bc77a91a9a38d6bbafe8
 # Logs
 logs
 *.log
@@ -25,11 +17,11 @@ lerna-debug.log*
 .DS_Store
 
 # Tests
-/coverage
-/.nyc_output
+coverage/
+.nyc_output/
 
 # IDEs and editors
-/.idea
+.idea/
 .project
 .classpath
 .c9/
@@ -50,7 +42,7 @@ lerna-debug.log*
 .env.production
 
 # Prisma
-/prisma/data.db
+prisma/data.db
 
 # Docker
 docker-compose.override.yml

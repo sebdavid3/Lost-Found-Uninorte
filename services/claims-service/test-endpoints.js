@@ -1,6 +1,13 @@
 async function runTests() {
   console.log('🧪 Iniciando pruebas de E2E a la API...');
-  const API_URL = 'http://localhost:3000/claims';
+  const claimsApiBaseUrl = process.env.CLAIMS_API_BASE_URL;
+  if (!claimsApiBaseUrl) {
+    throw new Error(
+      'CLAIMS_API_BASE_URL no esta configurada. Ejemplo: CLAIMS_API_BASE_URL=http://<host>:<port>',
+    );
+  }
+
+  const API_URL = `${claimsApiBaseUrl.replace(/\/+$/, '')}/claims`;
 
   // Obtener IDs de la base de datos (requerimos leerlos de prisma o asumir cómo obtenerlos)
   // Para este test, la base de datos está recién seedeada. Vamos a buscar los IDs vía Prisma (solo para el script de prueba)

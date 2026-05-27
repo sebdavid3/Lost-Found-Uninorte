@@ -3,7 +3,26 @@
 > **Proyecto:** Lost & Found Uninorte
 > **Branch:** `entrega-final`
 > **Propósito:** Funcionalidades que **no existían en el frontend anterior** y hay que implementar desde cero en la reconstrucción.
-> **Referencia de diseño:** `docs/design.md`
+> **Referencia de diseño:** `frontend/design.md`
+
+---
+
+## Lecciones del frontend anterior (errores a NO repetir)
+
+El frontend anterior fue eliminado porque era más problemático que útil. Estas son las lecciones aprendidas:
+
+| # | Error | Impacto | Solución en el nuevo frontend |
+|---|-------|---------|-------------------------------|
+| L1 | `userId` hardcodeado como `'current-user-id'` | Flujo de claims roto — backend no encuentra el usuario | AuthContext con userId real desde el login |
+| L2 | Optimistic update en catch de Approve/Reject | UI muestra APPROVED aunque API haya fallado | Solo actualizar estado local si la respuesta es exitosa |
+| L3 | `console.error` sin feedback al usuario | Error indistinguible de "no hay datos" | Estado `error` + componente visual + botón Retry |
+| L4 | `alert()` para notificaciones | UX intrusiva, sin diseño, no escala | Sistema de toasts no intrusivos |
+| L5 | JSON parse con `.catch(() => ({}))` | Respuestas no-JSON pasan como `{}` sin error | Validar `response.ok` y content-type antes de parsear |
+| L6 | `mockData.ts` nunca usado (código muerto) | Bundle inflado, confusión | Usar MSW condicional o no incluir mocks |
+| L7 | Strings en vez de enums (`'ADMIN'`, `'PENDING'`) | Sin type safety, propenso a errores | Siempre importar enums del sistema de tipos |
+| L8 | Sin loading en botones de submit | Doble clic → requests duplicados | Estado `isLoading` + disabled + spinner |
+| L9 | Factory desbalanceada (ELECTRONIC vs default todo) | Mayoría de categorías sin diferenciación | Solo implementar si hay diferenciación real |
+| L10 | `via.placeholder.com` como fallback de imágenes | Dependencia externa puede fallar | Placeholder inline local (SVG/CSS) |
 
 ---
 

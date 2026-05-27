@@ -166,9 +166,9 @@ export class EvidenceDto {
 
 ---
 
-### F8. Falta `@ArrayMinSize(1)` en evidences — arreglo vacío permitido
+### F8. Falta `@ArrayMinSize(1)` y `@IsArray()` en evidences — arreglo vacío permitido
 
-**Problema:** `CreateClaimDto.evidences` tiene `@ValidateNested({ each: true })` pero no `@ArrayMinSize(1)`. Se puede crear un claim sin ninguna evidencia.
+**Problema:** `CreateClaimDto.evidences` tiene `@ValidateNested({ each: true })` pero no `@ArrayMinSize(1)` ni `@IsArray()`. Se puede crear un claim sin ninguna evidencia, y el tipo del campo no se valida como array.
 
 **Archivo a modificar:** `services/claims-service/src/application/dto/create-claim.dto.ts`
 
@@ -395,34 +395,138 @@ import Consul from 'consul';  // con types adecuados
 
 ### F19. Race condition en audit chain insertion
 
-**Problema:** `verifyIntegrity()` en `audit-log.service.ts` lee entradas sin lock. Si hay escrituras concurrentes durante la verificación, puede dar falsos positivos.
+**Problema:** `verifyIntegrity()` en `audit-log.service.ts` lee entradas sin transacción explícita. Aunque `appendWithChain()` ya usa `FOR UPDATE` para serializar escrituras, la verificación de integridad no está envuelta en una transacción de solo lectura, lo que en teoría podría ver un estado inconsistente bajo concurrencia extrema. Impacto real es bajo porque el audit log es append-only y PostgreSQL read-committed no muestra filas no commiteadas.
 
 **Archivo a modificar:** `services/audit-service/src/application/services/audit-log.service.ts`
 
-Agregar nivel de aislamiento `SERIALIZABLE` en la verificación o leer dentro de una transacción de solo lectura.
+Opcional: envolver el `findAllOrdered()` en una transacción de solo lectura para mayor seguridad.
 
 ---
 
-## Resumen de archivos a modificar (solo fixes)
+### F20. `ACCESSORY` usa `ElectronicClaimFactory` pero el handler lo trata como genérico — falso rechazo
 
-| Archivo | Fix |
-|---------|-----|
-| `services/claims-service/src/infrastructure/main.ts` | F1: ValidationPipe |
+**Problema:** `ClaimFactoryProvider` (`claim-factory.provider.ts`) rutea `ACCESSORY` a `ElectronicClaimFactory` (espera `SERIAL_NUMBER` o `DIGITAL_INVOICE`). Pero `EvidenceMatchHandler` solo trata `ELECTRONIC` como categoría electrónica; todo lo demás (incluyendo `ACCESSORY`) espera `DETAILED_DESCRIPTION` o `REFERENCE_PHOTO`. Un claim para un accesorio con serial/serie se crea pero **siempre falla** en verificación.
+
+**Impacto:** Falsos rechazos garantizados para la categoría ACCESSORY.
+
+**Archivos a modificar:**
+- `services/claims-service/src/infrastructure/objects/claim-factory.provider.ts` — corregir ruteo de ACCESSORY
+- `services/claims-service/src/application/handlers/evidence-match.handler.ts` — alinear lógica de categorías
+
+**Solución:** Decidir si ACCESSORY es electrónico o común, y alinear factory + handler consistentemente.
+
+---
+
+### F21. `objectCategory` en DTO no se valida contra el objeto real en BD
+
+**Problema:** `CreateClaimDto.objectCategory` es un campo que el cliente envía. El servicio usa ese valor (no el de la BD) para elegir el factory de validación. Un cliente puede enviar `category: 'COMMON'` para un objeto `ELECTRONIC` real y evadir la validación de evidencias estrictas.
+
+**Impacto:** La validación de evidencias se puede eludir completamente.
+
+**Archivo a modificar:** `services/claims-service/src/application/services/claims.service.ts`
+
+**Solución:** En `create()`, leer el objeto real de la BD (`GET /objects/:id`) y usar su categoría real, no la del cliente.
+
+---
+
+### F22. Claims creados para usuarios que no existen en DB
+
+**Problema:** `ClaimsService.create()` valida que el objeto exista y tenga foto, pero **nunca verifica que el `userId` exista** en la tabla `User`. El `IdentityHandler` solo se ejecuta durante la verificación del admin, no en la creación.
+
+**Impacto:** Se pueden crear claims huérfanos asociados a IDs de usuario inexistentes.
+
+**Archivo a modificar:** `services/claims-service/src/application/services/claims.service.ts`
+
+**Solución:** Validar existencia del `userId` en la tabla `User` antes de crear el claim. F4 (header check) reduce el riesgo pero no lo elimina si el userId es válido pero no existe.
+
+---
+
+### F23. `remove()` omite el ACL — posible leak de datos internos
+
+**Problema:** `ClaimsController.remove()` (línea 112) retorna el resultado crudo de Prisma. A diferencia de `create()`, `update()` y `findOne()`, no pasa por `antiCorruptionLayer.toClaimResponse()`.
+
+**Archivo a modificar:** `services/claims-service/src/infrastructure/controllers/claims.controller.ts`
+
+**Solución:** Envolver el resultado con `antiCorruptionLayer.toClaimResponse()`.
+
+---
+
+### F24. `EvidenceDto.description` es `@IsOptional()` pero el factory lo requiere como obligatorio
+
+**Problema:** `EvidenceDto.description` tiene `@IsOptional()` en el DTO, pero `CommonClaimFactory.validateEvidences()` lo requiere como truthy cuando el tipo es `DETAILED_DESCRIPTION`. Las capas de validación se contradicen.
+
+**Archivos a modificar:**
+- `services/claims-service/src/application/dto/create-claim.dto.ts` — cambiar `@IsOptional()` a `@IsNotEmpty()`
+- O mantener opcional pero alinear el factory para que acepte description vacía
+
+---
+
+### F25. CORS sin restricción de origen
+
+**Problema:** `claims-service/src/infrastructure/main.ts` (línea 7) tiene `app.enableCors()` sin opciones. Permite cualquier origen en un sistema universitario con datos sensibles.
+
+**Archivo a modificar:** `services/claims-service/src/infrastructure/main.ts`
+
+**Solución:**
+```ts
+app.enableCors({
+  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+  credentials: true,
+});
+```
+
+---
+
+### F26. Health check de audit-service golpea endpoint de datos
+
+**Problema:** `docker-compose.yml` (línea 141) usa `wget ... /audit-log` como health check. Esto consulta la BD cada 10 segundos, genera carga innecesaria e infla el audit log si el endpoint registra accesos.
+
+**Archivo a modificar:** `docker-compose.yml`
+
+**Solución:** Una vez implementado NF5 (health endpoint en audit-service), cambiar el health check a `wget --spider http://localhost:3001/health`.
+
+---
+
+### F27. `Object` del modelo Prisma shadowea el global de JS
+
+**Problema:** `claim-verification.types.ts` importa `Object` de `@prisma/client`, que shadowea el constructor global `Object` de JavaScript. Puede causar problemas sutiles con tooling o en runtime.
+
+**Archivo a modificar:** `services/claims-service/src/application/handlers/claim-verification.types.ts`
+
+**Solución:** Usar alias en el import: `import { Object as PrismaObject } from '@prisma/client'`
+
+---
+
+### F28. `@IsArray()` faltante en `CreateClaimDto.evidences`
+
+**Problema:** Además de la falta de `@ArrayMinSize(1)` documentada en F8, tampoco hay `@IsArray()`. Sin este decorador, `class-validator` no valida que el valor sea efectivamente un array.
+
+**Archivo a modificar:** `services/claims-service/src/application/dto/create-claim.dto.ts` (incluido en la solución de F8)
+
+---
+
+| Archivo | Fix(es) |
+|---------|---------|
+| `services/claims-service/src/infrastructure/main.ts` | F1+F25: ValidationPipe + CORS con origen |
 | `services/audit-service/src/main.ts` | F1: ValidationPipe |
 | `services/claims-service/prisma/schema.prisma` | F2+F13+F14: Campos faltantes, índices, unique |
 | `services/claims-service/prisma/seed.cjs` | F5: Seed data completa |
 | `services/claims-service/prisma/seed.ts` | F17: Eliminar (duplicado muerto) |
 | `services/audit-service/prisma/seed.ts` | F5: Crear seed |
 | `services/claims-service/src/application/interceptors/audit-log.interceptor.ts` | F3: Eliminar doble emisión |
-| `services/claims-service/src/application/services/claims.service.ts` | F4+F16: Ownership checks, validar body vacío |
+| `services/claims-service/src/application/services/claims.service.ts` | F4+F16+F21+F22: Ownership checks, body vacío, validar categoría real, validar userId existe |
 | `services/claims-service/src/application/services/outbox.service.ts` | F9+F10: FOR UPDATE SKIP LOCKED, timeout PROCESSING |
-| `services/claims-service/src/application/dto/create-claim.dto.ts` | F7+F8: EvidenceType enum, @ArrayMinSize |
+| `services/claims-service/src/application/dto/create-claim.dto.ts` | F7+F8+F24+F28: EvidenceType enum, @ArrayMinSize, @IsArray(), description consistente |
 | `services/claims-service/src/application/dto/update-claim.dto.ts` | F6: Agregar rejectionReason |
-| `services/claims-service/src/application/handlers/evidence-match.handler.ts` | F12: Sincronizar con factory |
+| `services/claims-service/src/application/handlers/evidence-match.handler.ts` | F12+F20: Sincronizar con factory, corregir categoría ACCESSORY |
 | `services/claims-service/src/infrastructure/common/filters/global-exception.filter.ts` | F11: Crear global exception filter |
+| `services/claims-service/src/infrastructure/controllers/claims.controller.ts` | F23: Envolver remove() en ACL |
+| `services/claims-service/src/infrastructure/objects/claim-factory.provider.ts` | F20: Corregir ruteo ACCESSORY |
+| `services/claims-service/src/application/handlers/claim-verification.types.ts` | F27: Alias import Object |
 | `services/audit-service/src/infrastructure/controllers/audit-log.controller.ts` | F15: Validar query params |
 | `services/claims-service/src/infrastructure/service-discovery/service-discovery.service.ts` | F18: Import en vez de require |
-| `services/audit-service/src/application/services/audit-log.service.ts` | F19: Race condition en verificación |
+| `services/audit-service/src/application/services/audit-log.service.ts` | F19: Transacción en verifyIntegrity |
+| `docker-compose.yml` | F26: Health check audit-service |
 
 ---
 
@@ -430,16 +534,23 @@ Agregar nivel de aislamiento `SERIALIZABLE` en la verificación o leer dentro de
 
 - [ ] `POST /claims` con body `{}` → 400
 - [ ] `POST /claims` con datos válidos → 201 + 1 outbox event
-- [ ] `GET /objects` devuelve objetos con `name` y `status`
-- [ ] `GET /claims/:id/audit` genera 1 audit log (no 2)
-- [ ] Estudiante A NO puede modificar/eliminar claims de Estudiante B
-- [ ] `POST /claims` con `userId` distinto al header → 403
-- [ ] `PATCH /claims/:id` con `{ rejectionReason: "..." }` guarda el campo
-- [ ] `POST /claims` con `type: 'INVALIDO'` → 400
-- [ ] `POST /claims` con `evidences: []` → 400
+- [ ] `POST /claims` con `objectCategory` distinto al objeto real → usa la categoría real de BD
+- [ ] `POST /claims` con `userId` que no existe en DB → 400
+- [ ] `POST /claims` con `evidences: []` → 400 (F8+F28)
+- [ ] `POST /claims` con `type: 'INVALIDO'` → 400 (F7)
+- [ ] `POST /claims` con `userId` distinto al header → 403 (F4)
+- [ ] `GET /objects` devuelve objetos con `name` y `status` (F2)
+- [ ] `GET /claims/:id/audit` genera 1 audit log (no 2) (F3)
+- [ ] Estudiante A NO puede modificar/eliminar claims de Estudiante B (F4)
+- [ ] `PATCH /claims/:id` con `{ rejectionReason: "..." }` guarda el campo (F6)
+- [ ] `PATCH /claims/:id` con `{}` → 400 (F16)
+- [ ] `DELETE /claims/:id` retorna respuesta sanitizada por ACL (F23)
 - [ ] Objeto sin foto → 400 (regla de negocio)
-- [ ] `PATCH /claims/:id` con `{}` → 400
-- [ ] `GET /audit-log/action/INVALID` → 400
-- [ ] `GET /audit-log/verify-integrity` → `{ valid: true }`
-- [ ] Seed: existe usuario admin + objetos de todas las categorías + claims de ejemplo
-- [ ] Solo un archivo seed (`seed.cjs`)
+- [ ] Claim ACCESSORY se puede verificar sin falso rechazo (F20)
+- [ ] `GET /audit-log/action/INVALID` → 400 (F15)
+- [ ] `GET /audit-log/verify-integrity` → `{ valid: true }` (F19)
+- [ ] CORS solo permite orígenes configurados (F25)
+- [ ] Health check audit-service usa `/health` no `/audit-log` (F26)
+- [ ] Seed: existe usuario admin + objetos de todas las categorías + claims de ejemplo (F5)
+- [ ] Solo un archivo seed (`seed.cjs`) (F17)
+- [ ] `Object` de Prisma no shadowea global de JS (F27)

@@ -33,12 +33,12 @@
 
 ## NF2. Paginación en endpoints de lista
 
-**Estado:** `GET /claims`, `GET /objects`, `GET /audit-log` cargan todos los registros sin paginar.
+**Estado:** `GET /claims` y `GET /objects` cargan todos los registros sin paginar. `GET /audit-log` **ya tiene paginación** implementada con `page`/`limit`.
 
 **Implementar en:**
 - `claims.controller.ts` — `findAll()` con query params `page` y `limit`
 - `objects.controller.ts` — `findAll()` con `page` y `limit`
-- `audit-log.controller.ts` — ya acepta `page`/`limit` pero verificar
+- `audit-log.controller.ts` — ✅ **ya implementado**, verificar que funcione correctamente
 
 ```ts
 @Get()

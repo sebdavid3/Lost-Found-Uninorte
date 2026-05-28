@@ -1,4 +1,4 @@
-import { Role, ObjectCategory, ClaimStatus, EvidenceType, User, FoundObject, Evidence, Claim } from "../types";
+import { ObjectCategory, ClaimStatus, type FoundObject, type Evidence, type Claim } from "../types";
 
 const CLAIMS_BASE_URL = import.meta.env.VITE_CLAIMS_API_URL || "http://localhost:3000";
 const AUDIT_BASE_URL = import.meta.env.VITE_AUDIT_API_URL || "http://localhost:3001";

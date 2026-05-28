@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { User, Role } from "../types";
+import { type User, Role } from "../types";
 
 // Simular una base de datos local de usuarios para pruebas
 const MOCK_USERS: User[] = [

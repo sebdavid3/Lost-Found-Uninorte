@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { Role } from "../../types";
-import { LogIn, LogOut, Shield, FileText, Search } from "lucide-react";
+import { LogIn, LogOut, Shield, FileText } from "lucide-react";
 import { Button } from "../ui/button";
 
 export const PublicLayout: React.FC = () => {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { 
-  Shield, 
   LayoutDashboard, 
   FileText, 
   Package, 
@@ -10,8 +9,7 @@ import {
   LogOut, 
   Home, 
   Menu, 
-  X,
-  User as UserIcon
+  X
 } from "lucide-react";
 import { Button } from "../ui/button";
 

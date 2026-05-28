@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { LogOut, Home, FileText, User as UserIcon } from "lucide-react";
+import { LogOut, Home, FileText } from "lucide-react";
 import { Button } from "../ui/button";
 
 export const StudentLayout: React.FC = () => {

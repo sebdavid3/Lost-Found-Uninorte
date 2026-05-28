@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
@@ -18,6 +19,18 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  const config = new DocumentBuilder()
+    .setTitle('Lost & Found Uninorte — Claims Service')
+    .setDescription('API de gestión de reclamos de objetos perdidos')
+    .setVersion('1.0')
+    .addApiKey({ type: 'apiKey', name: 'x-user-role', in: 'header' }, 'role')
+    .addApiKey({ type: 'apiKey', name: 'x-user-id', in: 'header' }, 'userId')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

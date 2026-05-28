@@ -124,7 +124,75 @@ async function main() {
   });
   console.log('✅ Objeto electrónico 2 listo:', electronic2.id);
 
-  console.log('🌱 Seeder completado con éxito. Total: 8 objetos, 3 usuarios.');
+  // ── Claims de Prueba ──
+  console.log('🌱 Creando claims de prueba...');
+  
+  // Limpiar claims anteriores para evitar duplicados en seedings repetidos
+  await prisma.evidence.deleteMany({});
+  await prisma.claim.deleteMany({});
+
+  // 1. Claim PENDING
+  const claimPending = await prisma.claim.create({
+    data: {
+      status: 'PENDING',
+      userId: student1.id,
+      objectId: electronicObject.id,
+      evidences: {
+        create: [
+          {
+            type: 'SERIAL_NUMBER',
+            description: 'El número de serie es C02FG123Q05D. Lo compré en el iShop de Buenavista.',
+          },
+          {
+            type: 'DIGITAL_INVOICE',
+            url: 'https://invoice-storage.uninorte.edu.co/invoices/inv-8827.pdf',
+            description: 'Factura de compra en formato PDF adjunta.',
+          }
+        ]
+      }
+    }
+  });
+  console.log('✅ Claim PENDING creado:', claimPending.id);
+
+  // 2. Claim APPROVED
+  const claimApproved = await prisma.claim.create({
+    data: {
+      status: 'APPROVED',
+      userId: student2.id,
+      objectId: clothingObject.id,
+      evidences: {
+        create: [
+          {
+            type: 'DETAILED_DESCRIPTION',
+            description: 'Es una chaqueta Nike de color negro, tiene una costura suelta en la manga izquierda y el logo en el pecho.',
+          }
+        ]
+      }
+    }
+  });
+  console.log('✅ Claim APPROVED creado:', claimApproved.id);
+
+  // 3. Claim REJECTED
+  const claimRejected = await prisma.claim.create({
+    data: {
+      status: 'REJECTED',
+      userId: student1.id,
+      objectId: commonObject.id,
+      rejectionReason: 'La marca y color del termo no corresponden a las fotos de referencia aportadas por el estudiante.',
+      evidences: {
+        create: [
+          {
+            type: 'REFERENCE_PHOTO',
+            url: 'https://termo-storage.uninorte.edu.co/photos/my-thermos.jpg',
+            description: 'Foto de mi termo cuando estaba en mi mochila.',
+          }
+        ]
+      }
+    }
+  });
+  console.log('✅ Claim REJECTED creado:', claimRejected.id);
+
+  console.log('🌱 Seeder completado con éxito. Total: 8 objetos, 3 usuarios, 3 claims.');
 }
 
 main()

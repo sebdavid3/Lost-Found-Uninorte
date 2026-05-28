@@ -21,27 +21,38 @@ export class ClaimsService {
   ) {}
 
   async create(createClaimDto: CreateClaimDto, actor?: AuditActorContext) {
-    const { userId, objectId, objectCategory, evidences } = createClaimDto;
+    const { userId, objectId, evidences } = createClaimDto;
 
-    // 1. Obtener la factory correspondiente a la categoría del objeto
-    const factory = this.factoryProvider.getFactory(objectCategory);
-
-    // 2. Validar que las evidencias cumplan los requisitos de su categoría
-    const validationResult = factory.validateEvidences(evidences);
-
-    if (!validationResult.isValid) {
-      throw new BadRequestException(
-        `Evidencias inválidas para categoría ${objectCategory}: ${validationResult.errors.join(', ')}`,
-      );
+    // 1. Validar que el usuario especificado exista en la base de datos (F22)
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!userExists) {
+      throw new BadRequestException('El usuario especificado no existe');
     }
 
-    // 3. Obtener el Objeto de la base de datos para Validar la Regla Crítica (Debe tener foto)
+    // 2. Obtener el Objeto de la base de datos para Validar la Regla Crítica (Debe tener foto)
     const object = await this.prisma.object.findUnique({
       where: { id: objectId },
     });
 
     if (!object) {
       throw new NotFoundException(`El objeto con ID ${objectId} no existe.`);
+    }
+
+    // 3. Validar objectCategory contra la BD (F21) - usar la categoría real
+    const category = object.category;
+
+    // 4. Obtener la factory correspondiente a la categoría del objeto
+    const factory = this.factoryProvider.getFactory(category);
+
+    // 5. Validar que las evidencias cumplan los requisitos de su categoría
+    const validationResult = factory.validateEvidences(evidences);
+
+    if (!validationResult.isValid) {
+      throw new BadRequestException(
+        `Evidencias inválidas para categoría ${category}: ${validationResult.errors.join(', ')}`,
+      );
     }
 
     if (!object.photo || object.photo.trim() === '') {

@@ -1,5 +1,20 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Query,
+  Body,
+  Headers,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ObjectsService } from './objects.service';
+import { CreateObjectDto } from '../../application/dto/create-object.dto';
+import { UpdateObjectDto } from '../../application/dto/update-object.dto';
 
 @Controller('objects')
 export class ObjectsController {
@@ -25,5 +40,40 @@ export class ObjectsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.objectsService.findOne(id);
+  }
+
+  @Post()
+  async create(
+    @Body() dto: CreateObjectDto,
+    @Headers('x-user-role') role: string,
+  ) {
+    if (role !== 'ADMIN') {
+      throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
+    }
+    return this.objectsService.create(dto);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateObjectDto,
+    @Headers('x-user-role') role: string,
+  ) {
+    if (role !== 'ADMIN') {
+      throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
+    }
+    return this.objectsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @Param('id') id: string,
+    @Headers('x-user-role') role: string,
+  ) {
+    if (role !== 'ADMIN') {
+      throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
+    }
+    await this.objectsService.remove(id);
   }
 }

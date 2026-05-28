@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
+import { CreateObjectDto } from '../../application/dto/create-object.dto';
+import { UpdateObjectDto } from '../../application/dto/update-object.dto';
 
 export interface ObjectFilters {
   q?: string;
@@ -60,7 +62,39 @@ export class ObjectsService {
     return { items, total, page, limit };
   }
 
-  findOne(id: string) {
-    return this.prisma.object.findUnique({ where: { id } });
+  async findOne(id: string) {
+    const obj = await this.prisma.object.findUnique({ where: { id } });
+    if (!obj) {
+      throw new NotFoundException(`Objeto con ID ${id} no encontrado.`);
+    }
+    return obj;
+  }
+
+  async create(dto: CreateObjectDto) {
+    return this.prisma.object.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+        photo: dto.photo,
+        category: dto.category,
+        location: dto.location,
+        status: 'AVAILABLE',
+      },
+    });
+  }
+
+  async update(id: string, dto: UpdateObjectDto) {
+    await this.findOne(id);
+    return this.prisma.object.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.prisma.object.delete({
+      where: { id },
+    });
   }
 }

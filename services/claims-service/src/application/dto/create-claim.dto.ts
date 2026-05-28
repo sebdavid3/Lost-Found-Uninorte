@@ -1,19 +1,27 @@
-import { IsString, IsNotEmpty, IsEnum, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, ValidateNested, IsOptional, IsArray, ArrayMinSize } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ObjectCategory } from '@prisma/client';
 
+export enum EvidenceType {
+  SERIAL_NUMBER = 'SERIAL_NUMBER',
+  DIGITAL_INVOICE = 'DIGITAL_INVOICE',
+  DETAILED_DESCRIPTION = 'DETAILED_DESCRIPTION',
+  REFERENCE_PHOTO = 'REFERENCE_PHOTO',
+  LOCATION_DETAIL = 'LOCATION_DETAIL',
+}
+
 export class EvidenceDto {
-  @IsString()
+  @IsEnum(EvidenceType)
   @IsNotEmpty()
-  type: string;
+  type: EvidenceType;
 
   @IsOptional()
   @IsString()
   url?: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
+  @IsNotEmpty()
+  description: string;
 }
 
 export class CreateClaimDto {
@@ -29,6 +37,8 @@ export class CreateClaimDto {
   @IsNotEmpty()
   objectCategory: ObjectCategory;
   
+  @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => EvidenceDto)
   evidences: EvidenceDto[];

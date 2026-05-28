@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ClaimStatus } from '@prisma/client';
 import { CreateClaimDto } from '../dto/create-claim.dto';
 import { UpdateClaimDto } from '../dto/update-claim.dto';
@@ -133,6 +133,9 @@ export class ClaimsService {
   async update(id: string, updateClaimDto: UpdateClaimDto, actor?: AuditActorContext) {
     const claim = await this.findOne(id);
     if (!claim) throw new NotFoundException(`Reclamación con ID ${id} no encontrada.`);
+    if (actor && actor.actorRole === 'STUDENT' && claim.userId !== actor.actorId) {
+      throw new ForbiddenException('No puedes modificar un reclamo que no te pertenece');
+    }
     if (claim.status !== 'PENDING') {
       throw new BadRequestException('Solo se pueden modificar reclamaciones en estado PENDIENTE.');
     }
@@ -161,6 +164,9 @@ export class ClaimsService {
   async remove(id: string, actor?: AuditActorContext) {
     const claim = await this.findOne(id);
     if (!claim) throw new NotFoundException(`Reclamación con ID ${id} no encontrada.`);
+    if (actor && actor.actorRole === 'STUDENT' && claim.userId !== actor.actorId) {
+      throw new ForbiddenException('No puedes modificar un reclamo que no te pertenece');
+    }
     if (claim.status !== 'PENDING') {
       throw new BadRequestException('Solo se pueden cancelar reclamaciones en estado PENDIENTE.');
     }

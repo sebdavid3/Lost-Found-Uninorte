@@ -47,6 +47,9 @@ export class ClaimsController {
   @Post()
   async create(@Body() createClaimDto: CreateClaimDto, @Req() request: Request) {
     const actorContext = this.getAuditContextFromRequest(request);
+    if (createClaimDto.userId !== actorContext.actorId) {
+      throw new ForbiddenException('No puedes crear un reclamo a nombre de otro usuario');
+    }
     const normalizedInput = this.antiCorruptionLayer.normalizeCreateClaimInput(createClaimDto);
     const createdClaim = await this.claimsService.create(normalizedInput, actorContext);
 

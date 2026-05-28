@@ -9,7 +9,7 @@ const VALID_EVIDENCE_TYPES: Record<string, string[]> = {
 
 export class EvidenceMatchHandler extends BaseClaimHandler {
   async handle(context: ClaimVerificationContext): Promise<boolean> {
-    const category = context.object.category;
+    const category = context.claim.object.category;
     const validTypes = VALID_EVIDENCE_TYPES[category] || VALID_EVIDENCE_TYPES.DEFAULT;
 
     const hasValidEvidence = context.claim.evidences.some(

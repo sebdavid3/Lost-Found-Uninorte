@@ -32,43 +32,19 @@ export class OutboxService {
   }
 
   async reserveBatch(limit = 20) {
-    const now = new Date();
-
-    const candidates = await this.prisma.outboxEvent.findMany({
-      where: {
-        OR: [{ status: OutboxStatus.PENDING }, { status: OutboxStatus.FAILED }],
-        nextAttemptAt: {
-          lte: now,
-        },
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-      take: limit,
-    });
-
-    const reserved = [] as typeof candidates;
-
-    for (const event of candidates) {
-      const updated = await this.prisma.outboxEvent.updateMany({
-        where: {
-          id: event.id,
-          status: event.status,
-        },
-        data: {
-          status: OutboxStatus.PROCESSING,
-        },
-      });
-
-      if (updated.count === 1) {
-        reserved.push({
-          ...event,
-          status: OutboxStatus.PROCESSING,
-        });
-      }
-    }
-
-    return reserved;
+    return this.prisma.$queryRaw<any[]>`
+      UPDATE "OutboxEvent"
+      SET status = 'PROCESSING'::"OutboxStatus", "updatedAt" = NOW()
+      WHERE id IN (
+        SELECT id FROM "OutboxEvent"
+        WHERE status IN ('PENDING'::"OutboxStatus", 'FAILED'::"OutboxStatus")
+           OR (status = 'PROCESSING'::"OutboxStatus" AND "nextAttemptAt" < NOW() - INTERVAL '5 minutes')
+        ORDER BY "createdAt" ASC
+        LIMIT ${limit}
+        FOR UPDATE SKIP LOCKED
+      )
+      RETURNING *;
+    `;
   }
 
   async markPublished(id: string) {

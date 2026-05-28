@@ -7,7 +7,7 @@ import {
   ObjectCategory,
   Role,
 } from '@prisma/client';
-import { CreateClaimDto } from '../../application/dto/create-claim.dto';
+import { CreateClaimDto, EvidenceType } from '../../application/dto/create-claim.dto';
 
 type ClaimWithRelations = Claim & {
   evidences?: Evidence[];
@@ -53,9 +53,9 @@ export class AntiCorruptionLayerService {
 
       return {
         ...evidence,
-        type: normalizedType,
+        type: normalizedType as EvidenceType,
         url: evidence.url?.trim() || undefined,
-        description: evidence.description?.trim() || undefined,
+        description: evidence.description?.trim() || '',
       };
     });
 

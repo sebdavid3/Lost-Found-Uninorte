@@ -138,7 +138,7 @@ services:
     networks:
       - lost_found_network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3001}/audit-log\""]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3001}/health\""]
       interval: 10s
       timeout: 5s
       retries: 3

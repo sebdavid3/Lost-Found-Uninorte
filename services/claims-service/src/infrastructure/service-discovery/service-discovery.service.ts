@@ -4,7 +4,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
 } from '@nestjs/common';
-const Consul = require('consul');
+import Consul from 'consul';
 
 @Injectable()
 export class ServiceDiscoveryService
@@ -37,7 +37,6 @@ export class ServiceDiscoveryService
     this.consul = new Consul({
       host: this.consulHost,
       port: this.consulPort,
-      promisify: true,
     });
 
     // ID único por instancia. Cuando se escala horizontalmente

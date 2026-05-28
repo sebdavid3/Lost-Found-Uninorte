@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, BadRequestException } from '@nestjs/common';
 import { AuditLogService } from '../../application/services/audit-log.service';
 import { AuditAction } from '../../domain/entities/audit-log-entry.entity';
 
@@ -27,8 +27,13 @@ export class AuditLogController {
   }
 
   @Get('action/:action')
-  async getActionsByType(@Param('action') action: keyof typeof AuditAction) {
-    return this.auditLogService.getActionsByType(AuditAction[action]);
+  async getActionsByType(@Param('action') action: string) {
+    if (!Object.values(AuditAction).includes(action as AuditAction)) {
+      throw new BadRequestException(
+        `Acción inválida: ${action}. Valores válidos: ${Object.values(AuditAction).join(', ')}`,
+      );
+    }
+    return this.auditLogService.getActionsByType(action as AuditAction);
   }
 
   @Get('date-range')

@@ -142,6 +142,9 @@ export class ClaimsService {
   }
 
   async update(id: string, updateClaimDto: UpdateClaimDto, actor?: AuditActorContext) {
+    if (!updateClaimDto || Object.keys(updateClaimDto).length === 0) {
+      throw new BadRequestException('Debe enviar al menos un campo para actualizar');
+    }
     const claim = await this.findOne(id);
     if (!claim) throw new NotFoundException(`Reclamación con ID ${id} no encontrada.`);
     if (actor && actor.actorRole === 'STUDENT' && claim.userId !== actor.actorId) {

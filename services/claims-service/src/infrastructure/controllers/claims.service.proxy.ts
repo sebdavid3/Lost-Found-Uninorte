@@ -11,13 +11,12 @@ export interface ClaimAccessContext {
 export class ClaimsServiceProxy {
   constructor(private readonly claimsService: ClaimsService) {}
 
-  async findAll(context: ClaimAccessContext) {
+  async findAll(context: ClaimAccessContext, skip?: number, take?: number) {
     if (context.role === Role.ADMIN) {
-      return this.claimsService.findAll();
+      return this.claimsService.findAll(skip, take);
     }
 
-    const allClaims = await this.claimsService.findAll();
-    return allClaims.filter(c => c.userId === context.userId);
+    return this.claimsService.findByUser(context.userId, skip, take);
   }
 
   async findOne(id: string, context: ClaimAccessContext) {

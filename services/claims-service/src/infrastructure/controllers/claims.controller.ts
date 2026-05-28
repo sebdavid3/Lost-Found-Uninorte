@@ -59,18 +59,32 @@ export class ClaimsController {
 
   @AuditAction('CLAIM_LIST_READ')
   @Get()
-  async findAll(@Req() request: Request) {
+  async findAll(
+    @Req() request: Request,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const context = this.getContextFromRequest(request);
-    const claims = await this.claimsServiceProxy.findAll(context);
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    const skip = (pageNum - 1) * limitNum;
 
+    const claims = await this.claimsServiceProxy.findAll(context, skip, limitNum);
     return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
   @Get('my')
-  async findMyClaims(@Req() request: Request) {
+  async findMyClaims(
+    @Req() request: Request,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const context = this.getContextFromRequest(request);
-    const claims = await this.claimsService.findByUser(context.userId);
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    const skip = (pageNum - 1) * limitNum;
 
+    const claims = await this.claimsService.findByUser(context.userId, skip, limitNum);
     return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 

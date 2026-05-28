@@ -95,8 +95,10 @@ export class ClaimsService {
     });
   }
 
-  findAll() {
+  findAll(skip?: number, take?: number) {
     return this.prisma.claim.findMany({
+      skip,
+      take,
       include: { evidences: true, user: true, object: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -109,9 +111,11 @@ export class ClaimsService {
     });
   }
 
-  findByUser(userId: string) {
+  findByUser(userId: string, skip?: number, take?: number) {
     return this.prisma.claim.findMany({
       where: { userId },
+      skip,
+      take,
       include: { evidences: true, user: true, object: true },
       orderBy: { createdAt: 'desc' },
     });

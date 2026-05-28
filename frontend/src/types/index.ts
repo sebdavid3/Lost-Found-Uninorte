@@ -1,31 +1,47 @@
-export enum Role {
-  ADMIN = "ADMIN",
-  STUDENT = "STUDENT",
-}
+export type Role = "ADMIN" | "STUDENT";
+export const Role = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+} as const;
 
-export enum ObjectCategory {
-  ELECTRONIC = "ELECTRONIC",
-  COMMON = "COMMON",
-  CLOTHING = "CLOTHING",
-  STATIONERY = "STATIONERY",
-  DOCUMENT = "DOCUMENT",
-  ACCESSORY = "ACCESSORY",
-  OTHER = "OTHER",
-}
+export type ObjectCategory =
+  | "ELECTRONIC"
+  | "COMMON"
+  | "CLOTHING"
+  | "STATIONERY"
+  | "DOCUMENT"
+  | "ACCESSORY"
+  | "OTHER";
+export const ObjectCategory = {
+  ELECTRONIC: "ELECTRONIC",
+  COMMON: "COMMON",
+  CLOTHING: "CLOTHING",
+  STATIONERY: "STATIONERY",
+  DOCUMENT: "DOCUMENT",
+  ACCESSORY: "ACCESSORY",
+  OTHER: "OTHER",
+} as const;
 
-export enum ClaimStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+export type ClaimStatus = "PENDING" | "APPROVED" | "REJECTED";
+export const ClaimStatus = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+} as const;
 
-export enum EvidenceType {
-  SERIAL_NUMBER = "SERIAL_NUMBER",
-  DIGITAL_INVOICE = "DIGITAL_INVOICE",
-  DETAILED_DESCRIPTION = "DETAILED_DESCRIPTION",
-  REFERENCE_PHOTO = "REFERENCE_PHOTO",
-  LOCATION_DETAIL = "LOCATION_DETAIL",
-}
+export type EvidenceType =
+  | "SERIAL_NUMBER"
+  | "DIGITAL_INVOICE"
+  | "DETAILED_DESCRIPTION"
+  | "REFERENCE_PHOTO"
+  | "LOCATION_DETAIL";
+export const EvidenceType = {
+  SERIAL_NUMBER: "SERIAL_NUMBER",
+  DIGITAL_INVOICE: "DIGITAL_INVOICE",
+  DETAILED_DESCRIPTION: "DETAILED_DESCRIPTION",
+  REFERENCE_PHOTO: "REFERENCE_PHOTO",
+  LOCATION_DETAIL: "LOCATION_DETAIL",
+} as const;
 
 export interface User {
   id: string;

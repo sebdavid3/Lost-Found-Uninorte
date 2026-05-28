@@ -87,7 +87,6 @@ export class AuditLogInterceptor implements NestInterceptor {
       details,
     };
 
-    // Emit event asynchronously
-    this.client.emit('audit.event.created', eventData);
+    // Emit event asynchronously is now handled by the Outbox pattern in the service
   }
 }

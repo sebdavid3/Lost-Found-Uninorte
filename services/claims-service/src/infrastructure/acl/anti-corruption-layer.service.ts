@@ -31,8 +31,8 @@ export interface ClaimResponseDto {
   object?: {
     id: string;
     name: string;
+    description: string;
     category: ObjectCategory;
-    status: FoundObject['status'];
     location: string;
     foundAt: Date;
     photo: string | null;
@@ -85,9 +85,9 @@ export class AntiCorruptionLayerService {
       object: claim.object
         ? {
             id: claim.object.id,
-            name: claim.object.name,
+            name: claim.object.description,
+            description: claim.object.description,
             category: claim.object.category,
-            status: claim.object.status,
             location: claim.object.location,
             foundAt: claim.object.foundAt,
             photo: claim.object.photo,

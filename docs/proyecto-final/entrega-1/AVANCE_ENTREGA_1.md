@@ -17,9 +17,9 @@ Coordinador de la entrega: TBD
 | 6.2 Actores del sistema | TBD | LISTO PARA REVISION | TBD | Tabla actor-responsabilidad-interaccion |
 | 6.3 Requerimientos | TBD | LISTO PARA REVISION | TBD | 10 RF + 5 RNF medibles |
 | 6.4 Estilo arquitectonico | TBD | LISTO PARA REVISION | TBD | Justificacion + trade-offs |
-| 6.5 Patrones de arquitectura | TBD | EN PROGRESO | TBD | Tabla completa + evidencia en codigo por patron (Service Discovery ya implementado en `claims-service`) |
+| 6.5 Patrones de arquitectura | TBD | APROBADO | TBD | Todos los patrones implementados con código real (Saga, Audit Log, Service Discovery, Outbox y ACL) |
 | 6.6 Diagramas obligatorios | TBD | NO INICIADO | TBD | C4 + BD + Figma enlazados |
-| Exposicion (diapositivas) | TBD | EN PROGRESO | TBD | Guion y mapa de responsabilidades + slides por patron |
+| Exposicion (diapositivas) | TBD | LISTO PARA REVISION | TBD | Guion y mapa de responsabilidades completo y sincronizado con el código |
 
 ## Riesgos abiertos
 

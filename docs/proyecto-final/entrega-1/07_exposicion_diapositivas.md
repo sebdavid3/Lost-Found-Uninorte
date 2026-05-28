@@ -29,8 +29,8 @@ Fecha de actualizacion: 2026-04-05
 | Andres Carrero | Saga | Orquestador (`POST /claims/:id/verify`), pasos, compensacion y como evolucionaria a flujo distribuido | EN PROGRESO |
 | Sebastian Ibanez | Audit Log | Donde vive, flujo, integridad hash-chain | EN PROGRESO |
 | Ayen Henriquez | Service Discovery | Consul como registry, registro/desregistro automatico, health checks y demo `/registry` | EN PROGRESO |
-| Luis Robles | Outbox Pattern | Placeholder (por completar: ubicacion, flujo, garantias) | NO INICIADO |
-| Andres Serrano | Anti-Corruption Layer | Placeholder (por completar: integracion externa, adaptadores) | NO INICIADO |
+| Luis Robles | Outbox Pattern | Explicación del modelo OutboxEvent, la persistencia transaccional y el publicador asíncrono con exponential backoff | LISTO |
+| Andres Serrano | Anti-Corruption Layer | Explicación de la sanitización de inputs, mapeo a ClaimResponseDto y el control de acceso según roles | LISTO |
 
 ## Demo sugerida - Service Discovery (2-3 minutos)
 

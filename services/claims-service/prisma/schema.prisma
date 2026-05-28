@@ -59,10 +59,15 @@ model Object {
   photo       String         // Regla de Negocio: Todo objeto debe tener una fotografía.
   category    ObjectCategory
   location    String
+  status      String         @default("AVAILABLE")
   foundAt     DateTime       @default(now())
   claims      Claim[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([category])
+  @@index([location])
+  @@index([foundAt])
 }
 
 model Claim {
@@ -76,6 +81,12 @@ model Claim {
   evidences Evidence[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([objectId])
+  @@index([status])
+  @@index([objectId, status])
+  @@unique([userId, objectId])
 }
 
 model Evidence {
@@ -87,6 +98,8 @@ model Evidence {
   claimId     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([claimId])
 }
 
 model OutboxEvent {

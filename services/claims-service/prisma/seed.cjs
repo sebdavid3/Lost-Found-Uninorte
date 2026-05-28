@@ -15,7 +15,7 @@ async function ensureObject(data) {
     return existing;
   }
 
-  return prisma.object.create({ data });
+  return prisma.object.create({ data: { ...data, status: data.status || 'AVAILABLE' } });
 }
 
 async function ensureUser(data) {

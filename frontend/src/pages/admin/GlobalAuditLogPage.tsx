@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { api, Paginated } from "../../lib/api";
+import { api, type Paginated } from "../../lib/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
-import { ShieldCheck, ShieldAlert, History, RefreshCw, ServerCrash, Database } from "lucide-react";
+import { ShieldCheck, ShieldAlert, RefreshCw, Database } from "lucide-react";
 import { toast } from "sonner";
 
 export const GlobalAuditLogPage: React.FC = () => {

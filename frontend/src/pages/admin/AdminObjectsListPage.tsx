@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { api, Paginated } from "../../lib/api";
-import { FoundObject } from "../../types";
+import { api, type Paginated } from "../../lib/api";
+import { type FoundObject } from "../../types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";

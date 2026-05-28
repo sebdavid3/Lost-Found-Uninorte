@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { api, Paginated } from "../lib/api";
-import { Claim, ClaimStatus } from "../types";
+import { api, type Paginated } from "../lib/api";
+import { type Claim, ClaimStatus } from "../types";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { FileText, Inbox, Calendar, AlertTriangle, AlertCircle } from "lucide-react";
+import { Inbox, Calendar, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export const MyClaimsPage: React.FC = () => {
@@ -94,7 +94,7 @@ export const MyClaimsPage: React.FC = () => {
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-3">
                       <span className="h-9 w-9 bg-brand-green/10 text-brand-green rounded-lg flex items-center justify-center font-display font-bold">
-                        {claim.objectCategory?.substring(0, 2).toUpperCase() || "OB"}
+                        {claim.object?.category?.substring(0, 2).toUpperCase() || "OB"}
                       </span>
                       <div>
                         <h4 className="font-display font-bold text-lg text-brand-black tracking-tight leading-tight">

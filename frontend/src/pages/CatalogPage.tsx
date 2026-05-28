@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { api, Paginated } from "../lib/api";
-import { FoundObject, ObjectCategory } from "../types";
+import { api, type Paginated } from "../lib/api";
+import { type FoundObject, ObjectCategory } from "../types";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";

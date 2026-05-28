@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { api, Paginated } from "../../lib/api";
-import { Claim } from "../../types";
+import { api, type Paginated } from "../../lib/api";
+import { type Claim } from "../../types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
-import { FileText, Calendar, ArrowRight, Eye, Settings } from "lucide-react";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export const AdminClaimsListPage: React.FC = () => {

@@ -85,7 +85,7 @@ export class AntiCorruptionLayerService {
       object: claim.object
         ? {
             id: claim.object.id,
-            name: claim.object.description,
+            name: (claim.object as any).name || claim.object.description,
             description: claim.object.description,
             category: claim.object.category,
             location: claim.object.location,

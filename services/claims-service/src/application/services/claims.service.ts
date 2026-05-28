@@ -85,20 +85,31 @@ export class ClaimsService {
   }
 
   findAll() {
-    return this.prisma.claim.findMany({ include: { evidences: true } });
+    return this.prisma.claim.findMany({
+      include: { evidences: true, user: true, object: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   findOne(id: string) {
     return this.prisma.claim.findUnique({
       where: { id },
-      include: { evidences: true },
+      include: { evidences: true, user: true, object: true },
+    });
+  }
+
+  findByUser(userId: string) {
+    return this.prisma.claim.findMany({
+      where: { userId },
+      include: { evidences: true, user: true, object: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   findByStatus(status: ClaimStatus) {
     return this.prisma.claim.findMany({
       where: { status },
-      include: { evidences: true },
+      include: { evidences: true, user: true, object: true },
     });
   }
 

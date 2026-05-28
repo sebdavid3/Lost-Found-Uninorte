@@ -54,6 +54,7 @@ model User {
 
 model Object {
   id          String         @id @default(uuid())
+  name        String
   description String
   photo       String         // Regla de Negocio: Todo objeto debe tener una fotografía.
   category    ObjectCategory

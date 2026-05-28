@@ -62,6 +62,14 @@ export class ClaimsController {
     return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
   }
 
+  @Get('my')
+  async findMyClaims(@Req() request: Request) {
+    const context = this.getContextFromRequest(request);
+    const claims = await this.claimsService.findByUser(context.userId);
+
+    return this.antiCorruptionLayer.toClaimsResponse(claims, context.role as Role);
+  }
+
   @Get('filter/status')
   async findByStatus(@Req() request: Request, @Query('status') status: ClaimStatus) {
     const context = this.getContextFromRequest(request);

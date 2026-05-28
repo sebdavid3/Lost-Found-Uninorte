@@ -72,13 +72,22 @@ export const api = {
     params.append("page", String(page));
     params.append("limit", String(limit));
 
-    // Nota: El backend original retorna un array directo o un paginado
     const res = await request<any>(`/objects?${params.toString()}`);
+
+    // Mapear items para asegurar que tengan un campo 'name'
+    const mapItem = (item: any): FoundObject => ({
+      ...item,
+      name: item.name || item.description || "Objeto sin nombre",
+    });
+
     if (res && res.items) {
-      return res;
+      return {
+        ...res,
+        items: res.items.map(mapItem),
+      };
     }
     // Fallback si no está paginado
-    const items = Array.isArray(res) ? res : [];
+    const items = (Array.isArray(res) ? res : []).map(mapItem);
     return {
       items,
       total: items.length,

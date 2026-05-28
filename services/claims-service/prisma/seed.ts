@@ -20,6 +20,7 @@ async function main() {
   // 2. Crear Objeto Electrónico (CON FOTO)
   const electronicObject = await prisma.object.create({
     data: {
+      name: 'MacBook Pro M1',
       description: 'MacBook Pro M1',
       category: ObjectCategory.ELECTRONIC,
       location: 'Biblioteca 2do Piso',
@@ -31,6 +32,7 @@ async function main() {
   // 3. Crear Objeto Común (SIN FOTO, para probar la regla crítica)
   const commonObjectNoPhoto = await prisma.object.create({
     data: {
+      name: 'Termo Contigo Azul',
       description: 'Termo Contigo Azul',
       category: ObjectCategory.COMMON,
       location: 'Cafetería Bloque K',

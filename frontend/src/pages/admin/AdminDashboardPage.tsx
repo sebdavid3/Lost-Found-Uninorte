@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Shield, FileText, Package, CheckCircle, AlertCircle, History } from "lucide-react";
+import { Shield, FileText, Package, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const AdminDashboardPage: React.FC = () => {

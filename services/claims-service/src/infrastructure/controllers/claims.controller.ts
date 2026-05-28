@@ -120,8 +120,10 @@ export class ClaimsController {
 
   @AuditAction('CLAIM_DELETED')
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() request: Request) {
-    return this.claimsService.remove(id, this.getAuditContextFromRequest(request));
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string, @Req() request: Request) {
+    const actorContext = this.getAuditContextFromRequest(request);
+    await this.claimsService.remove(id, actorContext);
   }
 
   @AuditAction('CLAIM_VERIFIED')

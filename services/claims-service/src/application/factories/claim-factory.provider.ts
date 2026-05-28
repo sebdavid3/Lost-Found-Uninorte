@@ -14,8 +14,8 @@ export class ClaimFactoryProvider {
   getFactory(category: ObjectCategory): ClaimFactory {
     switch (category) {
       case ObjectCategory.ELECTRONIC:
-      case ObjectCategory.ACCESSORY: // Trataremos estos como electrónicos que requieren serie
         return this.electronicFactory;
+      case ObjectCategory.ACCESSORY:
       case ObjectCategory.COMMON:
       case ObjectCategory.CLOTHING:
       case ObjectCategory.STATIONERY:

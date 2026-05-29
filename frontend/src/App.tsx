@@ -19,12 +19,18 @@ import { UnauthorizedPage } from "./pages/UnauthorizedPage";
 // Páginas del Estudiante / Públicas
 import { CatalogPage } from "./pages/CatalogPage";
 import { MyClaimsPage } from "./pages/MyClaimsPage";
+import ObjectDetailPage from "./pages/ObjectDetailPage";
+import CreateClaimPage from "./pages/CreateClaimPage";
+import ClaimDetailPage from "./pages/ClaimDetailPage";
+import ClaimAuditPage from "./pages/ClaimAuditPage";
 
 // Páginas de Administración
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminClaimsListPage } from "./pages/admin/AdminClaimsListPage";
 import { AdminObjectsListPage } from "./pages/admin/AdminObjectsListPage";
 import { GlobalAuditLogPage } from "./pages/admin/GlobalAuditLogPage";
+import AdminCreateObjectPage from "./pages/admin/AdminCreateObjectPage";
+import AdminEditObjectPage from "./pages/admin/AdminEditObjectPage";
 
 function App() {
   return (
@@ -36,6 +42,9 @@ function App() {
         {/* ================= RUTAS PÚBLICAS ================= */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<CatalogPage />} />
+            <Route path="/objects/:id" element={<ObjectDetailPage/>} />
+            <Route path="/claims/create" element={<CreateClaimPage/>} />
+            <Route path="/claims/:id" element={<ClaimDetailPage/>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -54,7 +63,10 @@ function App() {
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/claims" element={<AdminClaimsListPage />} />
             <Route path="/admin/objects" element={<AdminObjectsListPage />} />
+            <Route path="/admin/objects/create" element={<AdminCreateObjectPage/>} />
+            <Route path="/admin/objects/:id/edit" element={<AdminEditObjectPage/>} />
             <Route path="/admin/audit-logs" element={<GlobalAuditLogPage />} />
+            <Route path="/admin/claims/:id/audit" element={<ClaimAuditPage/>} />
           </Route>
         </Route>
 

@@ -148,6 +148,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_CLAIMS_API_URL: http://localhost:${CLAIMS_PUBLIC_PORT:-3000}
+        VITE_AUDIT_API_URL: http://localhost:${AUDIT_PUBLIC_PORT:-3001}
+        VITE_USER_API_URL: http://localhost:${USER_PUBLIC_PORT:-3002}
+        VITE_OBJECT_API_URL: http://localhost:${OBJECT_PUBLIC_PORT:-3003}
     container_name: lost_found_frontend
     ports:
       - '${FRONTEND_PUBLIC_PORT:-5173}:80'

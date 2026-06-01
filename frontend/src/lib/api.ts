@@ -1,10 +1,12 @@
 import { ObjectCategory, ClaimStatus, type FoundObject, type Evidence, type Claim, type DashboardStats } from "../types";
 import { useAuthStore } from "../stores/authStore";
 
-const CLAIMS_BASE_URL = import.meta.env.VITE_CLAIMS_API_URL || "http://localhost:3000";
-const AUDIT_BASE_URL = import.meta.env.VITE_AUDIT_API_URL || "http://localhost:3001";
-const USER_BASE_URL = import.meta.env.VITE_USER_API_URL || "http://localhost:3002";
-const OBJECT_BASE_URL = import.meta.env.VITE_OBJECT_API_URL || "http://localhost:3003";
+const DEV = import.meta.env.DEV;
+
+const CLAIMS_BASE_URL = DEV ? "" : (import.meta.env.VITE_CLAIMS_API_URL || "http://localhost:3000");
+const AUDIT_BASE_URL = DEV ? "" : (import.meta.env.VITE_AUDIT_API_URL || "http://localhost:3001");
+const USER_BASE_URL = DEV ? "" : (import.meta.env.VITE_USER_API_URL || "http://localhost:3002");
+const OBJECT_BASE_URL = DEV ? "" : (import.meta.env.VITE_OBJECT_API_URL || "http://localhost:3003");
 
 const getAuthHeaders = (): Record<string, string> => {
   const user = useAuthStore.getState().user;
@@ -22,7 +24,8 @@ const request = async <T>(path: string, options: RequestInit = {}, baseUrl?: str
   const isUser = path.startsWith("/users");
   const isObject = path.startsWith("/objects");
   const resolvedBase = baseUrl || (isAudit ? AUDIT_BASE_URL : isUser ? USER_BASE_URL : isObject ? OBJECT_BASE_URL : CLAIMS_BASE_URL);
-  const url = `${resolvedBase}${path}`;
+  const apiPath = DEV ? `/api${path}` : path;
+  const url = `${resolvedBase}${apiPath}`;
 
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");

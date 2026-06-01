@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { api, type Paginated } from "../../lib/api";
 import { type Claim } from "../../types";
+import { EVIDENCE_LABELS } from "../../types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
-import { Eye, X, ShieldCheck, ShieldX, FileText, MapPin, Calendar, User } from "lucide-react";
+import { Eye, X, ShieldCheck, ShieldX, FileText, MapPin, Calendar, User, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
 
 export const AdminClaimsListPage: React.FC = () => {
@@ -49,13 +50,13 @@ export const AdminClaimsListPage: React.FC = () => {
     try {
       await api.verifyClaim(selectedClaim.id);
       toast.success("¡Reclamación verificada y aprobada!", {
-        description: `La reclamación ${selectedClaim.id.substring(0, 8)}... pasó la cadena de verificación (Saga).`,
+        description: `La reclamación ${selectedClaim.id.substring(0, 8)}... fue verificada exitosamente.`,
       });
       setReviewModalOpen(false);
       fetchClaims();
     } catch (err: any) {
       toast.error("Verificación fallida", {
-        description: err.message || "La cadena de verificación rechazó la reclamación.",
+        description: err.message || "La reclamación no pudo ser verificada.",
       });
       fetchClaims();
     } finally {
@@ -203,13 +204,21 @@ export const AdminClaimsListPage: React.FC = () => {
                 <h4 className="text-xs font-mono text-gray-400 uppercase tracking-widest font-bold">Objeto Reclamado</h4>
                 <div className="flex items-start gap-3">
                   {selectedClaim.object && (
-                    <div className="h-16 w-16 rounded-lg bg-gray-200 overflow-hidden shrink-0">
-                      <img
-                        src={(selectedClaim.object as any)?.photo || ""}
-                        alt={selectedClaim.object?.name || ""}
-                        className="h-full w-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
+                    <img
+                      src={(selectedClaim.object as any)?.photo || ""}
+                      alt={selectedClaim.object?.name || "Objeto"}
+                      className="h-16 w-16 rounded-lg object-cover shrink-0 bg-gray-200"
+                      onError={(e) => {
+                        const el = e.target as HTMLImageElement;
+                        el.style.display = "none";
+                        const fallback = el.parentElement?.querySelector(".img-fallback");
+                        if (fallback) fallback.classList.remove("hidden");
+                      }}
+                    />
+                  )}
+                  {selectedClaim.object && (
+                    <div className="img-fallback hidden h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center shrink-0">
+                      <PackageOpen className="h-6 w-6 text-gray-400" />
                     </div>
                   )}
                   <div>
@@ -230,12 +239,42 @@ export const AdminClaimsListPage: React.FC = () => {
                 </h4>
                 {selectedClaim.evidences && selectedClaim.evidences.length > 0 ? (
                   selectedClaim.evidences.map((ev, idx) => (
-                    <div key={ev.id || idx} className="p-3 bg-white rounded-lg border border-gray-100 space-y-1">
+                    <div key={ev.id || idx} className="p-3 bg-white rounded-lg border border-gray-100 space-y-2">
                       <Badge className="bg-brand-coral/10 text-brand-coral hover:bg-brand-coral/10 text-[9px] font-mono tracking-wider px-2 py-0.5 uppercase border-0">
-                        {ev.type.replace(/_/g, " ")}
+                        {EVIDENCE_LABELS[ev.type] || ev.type.replace(/_/g, " ")}
                       </Badge>
-                      {ev.description && <p className="text-xs text-gray-600 leading-relaxed mt-1">{ev.description}</p>}
-                      {ev.url && <a href={ev.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand-green font-mono hover:underline">{ev.url}</a>}
+                      {ev.description && <p className="text-xs text-gray-600 leading-relaxed">{ev.description}</p>}
+                      {ev.url && (
+                        <div className="mt-2 relative">
+                          {ev.url.startsWith('data:') || ev.url.startsWith('http') ? (
+                            <>
+                              <img
+                                src={ev.url}
+                                alt={ev.description || ev.type}
+                                className="max-h-48 rounded-lg border border-gray-150 object-cover"
+                                onError={(e) => {
+                                  const el = e.target as HTMLImageElement;
+                                  el.style.display = "none";
+                                  const fallback = el.parentElement?.querySelector(".ev-img-fallback");
+                                  if (fallback) fallback.classList.remove("hidden");
+                                }}
+                              />
+                              <div className="ev-img-fallback hidden mt-2">
+                                <a
+                                  href={ev.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] text-brand-green font-mono hover:underline break-all"
+                                >
+                                  Abrir imagen en nueva pestaña
+                                </a>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-[11px] text-gray-400 break-all">{ev.url}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -315,12 +354,12 @@ export const AdminClaimsListPage: React.FC = () => {
                   {verifying ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Verificando Saga...
+                      Verificando...
                     </>
                   ) : (
                     <>
                       <ShieldCheck className="h-3.5 w-3.5" />
-                      Verificar (Saga)
+                      Verificar
                     </>
                   )}
                 </Button>

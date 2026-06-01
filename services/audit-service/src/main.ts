@@ -12,6 +12,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  });
   const rabbitMqUrl = process.env.RABBITMQ_URL;
   const port = Number(process.env.PORT || process.env.SERVICE_PORT || '3001');
 

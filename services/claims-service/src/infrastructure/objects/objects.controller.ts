@@ -11,14 +11,30 @@ import {
   ForbiddenException,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
-import { ObjectsService } from './objects.service';
+import type { Request } from 'express';
+import { ObjectsService, AuditActorContext } from './objects.service';
 import { CreateObjectDto } from '../../application/dto/create-object.dto';
 import { UpdateObjectDto } from '../../application/dto/update-object.dto';
 
 @Controller('objects')
 export class ObjectsController {
   constructor(private readonly objectsService: ObjectsService) {}
+
+  private getActorContext(request: Request, role: string): AuditActorContext {
+    const userId = Array.isArray(request.headers['x-user-id'])
+      ? request.headers['x-user-id'][0]
+      : request.headers['x-user-id'] ?? 'system';
+    const actorRole = Array.isArray(request.headers['x-user-role'])
+      ? request.headers['x-user-role'][0]
+      : request.headers['x-user-role'] ?? role;
+    return {
+      actorId: userId,
+      actorRole,
+      ipAddress: request.ip || request.connection?.remoteAddress || 'unknown',
+    };
+  }
 
   @Get()
   findAll(
@@ -46,11 +62,12 @@ export class ObjectsController {
   async create(
     @Body() dto: CreateObjectDto,
     @Headers('x-user-role') role: string,
+    @Req() request: Request,
   ) {
     if (role !== 'ADMIN') {
       throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
     }
-    return this.objectsService.create(dto);
+    return this.objectsService.create(dto, this.getActorContext(request, role));
   }
 
   @Patch(':id')
@@ -58,11 +75,12 @@ export class ObjectsController {
     @Param('id') id: string,
     @Body() dto: UpdateObjectDto,
     @Headers('x-user-role') role: string,
+    @Req() request: Request,
   ) {
     if (role !== 'ADMIN') {
       throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
     }
-    return this.objectsService.update(id, dto);
+    return this.objectsService.update(id, dto, this.getActorContext(request, role));
   }
 
   @Delete(':id')
@@ -70,10 +88,11 @@ export class ObjectsController {
   async remove(
     @Param('id') id: string,
     @Headers('x-user-role') role: string,
+    @Req() request: Request,
   ) {
     if (role !== 'ADMIN') {
       throw new ForbiddenException('No tienes permisos de administrador para realizar esta acción.');
     }
-    await this.objectsService.remove(id);
+    await this.objectsService.remove(id, this.getActorContext(request, role));
   }
 }

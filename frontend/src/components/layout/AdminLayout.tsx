@@ -147,7 +147,7 @@ export const AdminLayout: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Saga & Audit Activos
+              Sistema Operativo
             </span>
           </div>
         </header>

@@ -1,23 +1,16 @@
 import { ObjectCategory, ClaimStatus, type FoundObject, type Evidence, type Claim } from "../types";
+import { useAuthStore } from "../stores/authStore";
 
 const CLAIMS_BASE_URL = import.meta.env.VITE_CLAIMS_API_URL || "http://localhost:3000";
 const AUDIT_BASE_URL = import.meta.env.VITE_AUDIT_API_URL || "http://localhost:3001";
 
 const getAuthHeaders = (): Record<string, string> => {
-  try {
-    const authStorage = localStorage.getItem("auth-storage");
-    if (authStorage) {
-      const parsed = JSON.parse(authStorage);
-      const user = parsed?.state?.user;
-      if (user) {
-        return {
-          "x-user-id": user.id,
-          "x-user-role": user.role,
-        };
-      }
-    }
-  } catch (e) {
-    console.error("Error reading auth headers from localStorage", e);
+  const user = useAuthStore.getState().user;
+  if (user?.id && user?.role) {
+    return {
+      "x-user-id": user.id,
+      "x-user-role": user.role,
+    };
   }
   return {};
 };
@@ -50,6 +43,10 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
       errorMsg = response.statusText || errorMsg;
     }
     throw new Error(errorMsg);
+  }
+
+  if (response.status === 204) {
+    return null as T;
   }
 
   return response.json() as Promise<T>;
@@ -98,7 +95,7 @@ export const api = {
 
   getObjectById: (id: string) => request<FoundObject>(`/objects/${id}`),
 
-  createObject: (obj: Omit<FoundObject, "id" | "createdAt" | "updatedAt">) =>
+  createObject: (obj: Omit<FoundObject, "id" | "createdAt" | "updatedAt" | "foundAt">) =>
     request<FoundObject>("/objects", {
       method: "POST",
       body: JSON.stringify(obj),

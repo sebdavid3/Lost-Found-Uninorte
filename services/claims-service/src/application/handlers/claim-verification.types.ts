@@ -1,8 +1,8 @@
-import { Claim, Evidence, Object, User } from '@prisma/client';
+import { Claim, Evidence, Object as PrismaObject, User } from '@prisma/client';
 
 export type ClaimVerificationPayload = Claim & {
   user: User;
-  object: Object;
+  object: PrismaObject;
   evidences: Evidence[];
 };
 

@@ -134,9 +134,9 @@ export const PublicLayout: React.FC = () => {
             <div>
               <h3 className="font-mono text-xs text-brand-coral uppercase tracking-widest mb-4">Seguridad e Integridad</h3>
               <ul className="space-y-2.5 text-sm text-gray-400">
-                <li><span className="font-mono text-xs text-gray-500">MICROSERVICES ARCHITECTURE</span></li>
-                <li><span className="font-mono text-xs text-gray-500">AUDIT HASH LOGS INTEGRITY</span></li>
-                <li><span className="font-mono text-xs text-gray-500">SAGA DESIGN PATTERN</span></li>
+                <li><span className="font-mono text-xs text-gray-500">Tecnología confiable</span></li>
+                <li><span className="font-mono text-xs text-gray-500">Registro de auditoría</span></li>
+                <li><span className="font-mono text-xs text-gray-500">Procesos verificados</span></li>
               </ul>
             </div>
           </div>
@@ -146,11 +146,9 @@ export const PublicLayout: React.FC = () => {
           {/* Dependencias Monocromo en espaciado horizontal (trust-logo-strip) */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-mono">
             <div className="flex flex-wrap items-center gap-6 opacity-45">
-              <span>DEPARTAMENTO DE SISTEMAS</span>
+              <span>UNIVERSIDAD DEL NORTE</span>
               <span>•</span>
-              <span>SERVICIOS UNIVERSITARIOS</span>
-              <span>•</span>
-              <span>OFICINA DE APOYO</span>
+              <span>BIENESTAR UNIVERSITARIO</span>
             </div>
             <p>© {new Date().getFullYear()} Universidad del Norte. Todos los derechos reservados.</p>
           </div>

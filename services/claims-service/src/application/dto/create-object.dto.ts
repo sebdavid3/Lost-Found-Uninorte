@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum, IsUrl } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
 import { ObjectCategory } from '@prisma/client';
 
 export class CreateObjectDto {
@@ -10,7 +10,7 @@ export class CreateObjectDto {
   @IsNotEmpty()
   description: string;
 
-  @IsUrl()
+  @IsString()
   @IsNotEmpty()
   photo: string;
 

@@ -82,7 +82,7 @@ export const MyClaimsPage: React.FC = () => {
           <Inbox className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-brand-black">No tienes reclamaciones activas</h3>
           <p className="text-sm text-gray-500 mt-2">
-            Aún no has reclamado ningún objeto extraviado del campus. Cuando lo hagas, aparecerá aquí su estado en tiempo real.
+            Aún no has reclamado ningún objeto extraviado del campus. Cuando lo hagas, aparecerá aquí su estado.
           </p>
         </div>
       ) : (

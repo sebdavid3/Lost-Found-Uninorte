@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsEnum } from 'class-validator';
 import { ObjectCategory } from '@prisma/client';
 
 export class UpdateObjectDto {
@@ -10,7 +10,7 @@ export class UpdateObjectDto {
   @IsOptional()
   description?: string;
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
   photo?: string;
 

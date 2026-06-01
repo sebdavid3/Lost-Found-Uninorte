@@ -1,10 +1,10 @@
-import { Claim, Evidence, Object } from '@prisma/client';
+import { Claim, Evidence, Object as PrismaObject } from '@prisma/client';
 import { IVisitable, IVisitor } from '../visitor.interface';
 
 // Tipo extendido para incluir las relaciones que cargamos en Controller
 export type ClaimWithRelations = Claim & {
   evidences: Evidence[];
-  object: Object;
+  object: PrismaObject;
 };
 
 export class ClaimElement implements IVisitable {
@@ -28,7 +28,7 @@ export class ClaimElement implements IVisitable {
 export class EvidenceElement implements IVisitable {
   constructor(
     public evidence: Evidence,
-    public relatedObject: Object,
+    public relatedObject: PrismaObject,
   ) {}
 
   accept(visitor: IVisitor): void {

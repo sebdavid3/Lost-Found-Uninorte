@@ -22,6 +22,16 @@ export const ObjectCategory = {
   OTHER: "OTHER",
 } as const;
 
+export const CATEGORY_LABELS: Record<string, string> = {
+  ELECTRONIC: "Electrónico",
+  COMMON: "Común",
+  CLOTHING: "Ropa",
+  STATIONERY: "Papelería",
+  DOCUMENT: "Documento",
+  ACCESSORY: "Accesorio",
+  OTHER: "Otro",
+};
+
 export type ClaimStatus = "PENDING" | "APPROVED" | "REJECTED";
 export const ClaimStatus = {
   PENDING: "PENDING",
@@ -42,6 +52,14 @@ export const EvidenceType = {
   REFERENCE_PHOTO: "REFERENCE_PHOTO",
   LOCATION_DETAIL: "LOCATION_DETAIL",
 } as const;
+
+export const EVIDENCE_LABELS: Record<string, string> = {
+  SERIAL_NUMBER: "Número de serie",
+  DIGITAL_INVOICE: "Factura digital",
+  DETAILED_DESCRIPTION: "Descripción detallada",
+  REFERENCE_PHOTO: "Foto de referencia",
+  LOCATION_DETAIL: "Detalle de ubicación",
+};
 
 export interface User {
   id: string;

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore, QUICK_USERS } from "../stores/authStore";
 import { Role } from "../types";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -35,21 +35,21 @@ export const LoginPage: React.FC = () => {
   const quickUsers = [
     {
       name: "Andrés Carrero (Estudiante)",
-      email: "carre@uninorte.edu.co",
+      email: QUICK_USERS[1].email,
       role: Role.STUDENT,
       icon: UserIcon,
       color: "border-brand-green bg-emerald-50/50 hover:bg-emerald-50 text-brand-green",
     },
     {
       name: "Sebastian Ibañez (Estudiante)",
-      email: "sebas@uninorte.edu.co",
+      email: QUICK_USERS[2].email,
       role: Role.STUDENT,
       icon: UserIcon,
       color: "border-brand-green bg-emerald-50/50 hover:bg-emerald-50 text-brand-green",
     },
     {
-      name: "Administrador de Objetos",
-      email: "admin@uninorte.edu.co",
+      name: "Administrador",
+      email: QUICK_USERS[0].email,
       role: Role.ADMIN,
       icon: Shield,
       color: "border-brand-coral bg-orange-50/50 hover:bg-orange-50 text-brand-coral",
@@ -79,7 +79,7 @@ export const LoginPage: React.FC = () => {
               Recupera lo que es tuyo.
             </h2>
             <p className="text-emerald-100 text-base md:text-lg leading-relaxed mb-8">
-              Portal institucional de reclamación y auditoría criptográfica de objetos extraviados en el campus de la Universidad del Norte.
+              Portal institucional de objetos extraviados en el campus de la Universidad del Norte.
             </p>
           </div>
         </div>
@@ -89,15 +89,15 @@ export const LoginPage: React.FC = () => {
           <div className="flex items-start gap-2.5 bg-black/15 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
             <CheckCircle2 className="h-5 w-5 text-brand-coral shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-mono tracking-wider uppercase text-brand-coral">Saga Distribución</h4>
-              <p className="text-xs text-emerald-100/80 mt-1">Orquestación de flujos de verificación automáticos.</p>
+              <h4 className="text-xs font-mono tracking-wider uppercase text-brand-coral">Fácil y rápido</h4>
+              <p className="text-xs text-emerald-100/80 mt-1">Registrá tu reclamación en pocos pasos con evidencias simples.</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5 bg-black/15 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
             <CheckCircle2 className="h-5 w-5 text-brand-coral shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-mono tracking-wider uppercase text-brand-coral">Audit Log Inmutable</h4>
-              <p className="text-xs text-emerald-100/80 mt-1">Trazabilidad criptográfica de cada aprobación.</p>
+              <h4 className="text-xs font-mono tracking-wider uppercase text-brand-coral">Seguro y confiable</h4>
+              <p className="text-xs text-emerald-100/80 mt-1">Cada acción queda registrada con total transparencia.</p>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export const LoginPage: React.FC = () => {
           {/* SELECCIÓN RÁPIDA DE USUARIO */}
           <div className="space-y-3 mb-8">
             <Label className="text-xs font-mono tracking-wider uppercase text-gray-500 block mb-2">
-              ⚡ Acceso rápido (Ideal para evaluar)
+              ⚡ Acceso rápido
             </Label>
             <div className="grid grid-cols-1 gap-2.5">
               {quickUsers.map((u) => {
@@ -223,7 +223,7 @@ export const LoginPage: React.FC = () => {
           </form>
 
           <p className="text-center text-xs text-gray-400 font-mono mt-8">
-            lost-found-uninorte v1.0.0
+            Universidad del Norte
           </p>
         </div>
       </div>

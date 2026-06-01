@@ -1,18 +1,38 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query, BadRequestException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ServiceDiscoveryService } from './service-discovery/service-discovery.service';
+import { PrismaService } from './prisma.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    // Inyectamos ServiceDiscoveryService para exponer el endpoint /registry
     private readonly discoveryService: ServiceDiscoveryService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('users/me')
+  async getUserByEmail(@Query('email') email: string) {
+    if (!email) throw new BadRequestException('Email requerido');
+
+    let user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: email.split('@')[0],
+          role: email.includes('admin') ? 'ADMIN' : 'STUDENT',
+        },
+      });
+    }
+
+    return { id: user.id, email: user.email, name: user.name, role: user.role };
   }
 
   // ─── HEALTH CHECK ─────────────────────────────────────────────────────────

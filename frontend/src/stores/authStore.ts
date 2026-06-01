@@ -2,27 +2,15 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { type User, Role } from "../types";
 
-// Simular una base de datos local de usuarios para pruebas
-const MOCK_USERS: User[] = [
-  {
-    id: "admin-id-1",
-    email: "admin@uninorte.edu.co",
-    name: "Administrador de Objetos",
-    role: Role.ADMIN,
-  },
-  {
-    id: "student-id-1",
-    email: "carre@uninorte.edu.co",
-    name: "Andrés Carrero",
-    role: Role.STUDENT,
-  },
-  {
-    id: "student-id-2",
-    email: "sebas@uninorte.edu.co",
-    name: "Sebastian Ibañez",
-    role: Role.STUDENT,
-  },
+const CLAIMS_API = import.meta.env.VITE_CLAIMS_API_URL || "http://localhost:3000";
+
+const QUICK_USERS = [
+  { email: "admin@uninorte.edu.co", name: "Administrador", role: Role.ADMIN },
+  { email: "carre@uninorte.edu.co", name: "Andrés Carrero", role: Role.STUDENT },
+  { email: "sebas@uninorte.edu.co", name: "Sebastian Ibañez", role: Role.STUDENT },
 ];
+
+export { QUICK_USERS };
 
 interface AuthStoreState {
   user: User | null;
@@ -45,37 +33,16 @@ export const useAuthStore = create<AuthStoreState>()(
       login: async (email: string, role?: Role) => {
         set({ isLoading: true, error: null });
         try {
-          // Simular latencia de red
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          const res = await fetch(`${CLAIMS_API}/users/me?email=${encodeURIComponent(email)}`);
+          if (!res.ok) throw new Error("Error al conectar con el servidor");
 
-          // Buscar el usuario mock
-          let foundUser = MOCK_USERS.find(
-            (u) => u.email.toLowerCase() === email.toLowerCase()
-          );
-
-          // Si se especificó rol (para pruebas directas) y no se encontró por email, crear uno dinámico
-          if (!foundUser && role) {
-            foundUser = {
-              id: `${role.toLowerCase()}-${Math.random().toString(36).substr(2, 9)}`,
-              email,
-              name: email.split("@")[0].replace(".", " "),
-              role,
-            };
-          }
-
-          if (!foundUser) {
-            // Por defecto, si el email contiene "admin" es ADMIN, si no STUDENT
-            const inferredRole = email.toLowerCase().includes("admin")
-              ? Role.ADMIN
-              : Role.STUDENT;
-
-            foundUser = {
-              id: `user-${Math.random().toString(36).substr(2, 9)}`,
-              email,
-              name: email.split("@")[0].split(".")[0],
-              role: inferredRole,
-            };
-          }
+          const data = await res.json();
+          const foundUser: User = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: data.role || role || Role.STUDENT,
+          };
 
           set({
             user: foundUser,

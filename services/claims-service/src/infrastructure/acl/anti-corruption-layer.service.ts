@@ -3,6 +3,7 @@ import {
   Claim,
   ClaimStatus,
   Evidence,
+  User,
   Object as FoundObject,
   ObjectCategory,
   Role,
@@ -11,6 +12,7 @@ import { CreateClaimDto, EvidenceType } from '../../application/dto/create-claim
 
 type ClaimWithRelations = Claim & {
   evidences?: Evidence[];
+  user?: User | null;
   object?: FoundObject | null;
 };
 
@@ -22,6 +24,11 @@ export interface ClaimResponseDto {
   createdAt: Date;
   updatedAt: Date;
   rejectionReason?: string | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   evidences: Array<{
     id: string;
     type: string;
@@ -76,6 +83,13 @@ export class AntiCorruptionLayerService {
       objectId: claim.objectId,
       createdAt: claim.createdAt,
       updatedAt: claim.updatedAt,
+      user: claim.user
+        ? {
+            id: claim.user.id,
+            name: claim.user.name,
+            email: claim.user.email,
+          }
+        : undefined,
       evidences: (claim.evidences ?? []).map(evidence => ({
         id: evidence.id,
         type: evidence.type,

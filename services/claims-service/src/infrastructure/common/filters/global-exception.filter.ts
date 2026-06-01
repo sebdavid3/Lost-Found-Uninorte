@@ -1,9 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -24,6 +26,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         status = HttpStatus.NOT_FOUND;
         message = 'Recurso no encontrado';
       }
+    } else if (exception instanceof Error && exception.message.includes('request entity too large')) {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+      message = 'La imagen es demasiado grande. Por favor, usa una foto de menor tamaño (máximo 50MB).';
+    }
+
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error('Internal server error:', exception instanceof Error ? exception.stack : exception);
     }
 
     response.status(status).json({

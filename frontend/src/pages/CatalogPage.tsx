@@ -1,15 +1,31 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type Paginated } from "../lib/api";
-import { type FoundObject, ObjectCategory, EvidenceType } from "../types";
+import { type FoundObject, ObjectCategory, EvidenceType, CATEGORY_LABELS, EVIDENCE_LABELS } from "../types";
 import { useAuthStore } from "../stores/authStore";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { Search, MapPin, Calendar, Folder, PackageOpen, AlertCircle, X, Send, Plus, Trash2 } from "lucide-react";
+import { Search, MapPin, Calendar, Folder, PackageOpen, AlertCircle, X, Send, Plus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+
+const toBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const EVIDENCE_BY_CATEGORY: Record<string, EvidenceType[]> = {
+  ELECTRONIC: [EvidenceType.SERIAL_NUMBER, EvidenceType.DIGITAL_INVOICE],
+  DEFAULT: [EvidenceType.DETAILED_DESCRIPTION, EvidenceType.REFERENCE_PHOTO],
+};
+
+const getEvidenceTypes = (category: string): EvidenceType[] =>
+  EVIDENCE_BY_CATEGORY[category] || EVIDENCE_BY_CATEGORY.DEFAULT;
 
 export const CatalogPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +44,7 @@ export const CatalogPage: React.FC = () => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [claimObject, setClaimObject] = useState<FoundObject | null>(null);
   const [claimSubmitting, setClaimSubmitting] = useState(false);
-  const [evidences, setEvidences] = useState<{ type: EvidenceType; description: string }[]>([
+  const [evidences, setEvidences] = useState<{ type: EvidenceType; description: string; url?: string }[]>([
     { type: EvidenceType.DETAILED_DESCRIPTION, description: "" },
   ]);
 
@@ -74,12 +90,14 @@ export const CatalogPage: React.FC = () => {
       return;
     }
     setClaimObject(obj);
-    setEvidences([{ type: EvidenceType.DETAILED_DESCRIPTION, description: "" }]);
+    const types = getEvidenceTypes(obj.category);
+    setEvidences(types.map(type => ({ type, description: "" })));
     setClaimModalOpen(true);
   };
 
   const addEvidence = () => {
-    setEvidences(prev => [...prev, { type: EvidenceType.DETAILED_DESCRIPTION, description: "" }]);
+    const defaultType = claimObject ? getEvidenceTypes(claimObject.category)[0] : EvidenceType.DETAILED_DESCRIPTION;
+    setEvidences(prev => [...prev, { type: defaultType, description: "", url: undefined }]);
   };
 
   const removeEvidence = (index: number) => {
@@ -87,12 +105,20 @@ export const CatalogPage: React.FC = () => {
     setEvidences(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateEvidence = (index: number, field: "type" | "description", value: string) => {
+  const updateEvidence = (index: number, field: "type" | "description" | "url", value: string) => {
     setEvidences(prev => prev.map((ev, i) => {
       if (i !== index) return ev;
-      if (field === "type") return { ...ev, type: value as EvidenceType };
-      return { ...ev, description: value };
+      return { ...ev, [field]: value };
     }));
+  };
+
+  const handleEvidenceFile = async (index: number, file: File) => {
+    try {
+      const b64 = await toBase64(file);
+      updateEvidence(index, "url", b64);
+    } catch {
+      toast.error("No se pudo leer la imagen.");
+    }
   };
 
   const handleSubmitClaim = async () => {
@@ -105,6 +131,12 @@ export const CatalogPage: React.FC = () => {
       return;
     }
 
+    const photoEvidence = evidences.find(ev => ev.type === EvidenceType.REFERENCE_PHOTO);
+    if (photoEvidence && !photoEvidence.url) {
+      toast.error("Debes adjuntar una foto en la evidencia de tipo 'Foto de Referencia'.");
+      return;
+    }
+
     setClaimSubmitting(true);
     try {
       await api.createClaim({
@@ -114,6 +146,7 @@ export const CatalogPage: React.FC = () => {
         evidences: evidences.map(ev => ({
           type: ev.type,
           description: ev.description.trim(),
+          url: ev.url || undefined,
         })),
       });
       toast.success("¡Reclamación enviada exitosamente!", {
@@ -122,9 +155,16 @@ export const CatalogPage: React.FC = () => {
       setClaimModalOpen(false);
       setClaimObject(null);
     } catch (err: any) {
-      toast.error("Error al enviar reclamación", {
-        description: err.message || "Intenta de nuevo más tarde.",
-      });
+      const msg = err.message || "Intenta de nuevo más tarde.";
+      if (msg.includes("request entity too large") || msg.includes("demasiado grande")) {
+        toast.error("La imagen es demasiado grande", {
+          description: "Por favor, usa una foto de menor tamaño o comprímela antes de subirla.",
+        });
+      } else {
+        toast.error("Error al enviar reclamación", {
+          description: msg,
+        });
+      }
     } finally {
       setClaimSubmitting(false);
     }
@@ -141,7 +181,7 @@ export const CatalogPage: React.FC = () => {
           Objetos Extraviados Uninorte
         </h1>
         <p className="text-gray-500 text-base md:text-lg leading-relaxed max-w-xl mx-auto">
-          ¿Perdiste algo en la universidad? Busca en nuestro catálogo público oficial en tiempo real e inicia tu reclamación con total transparencia.
+          ¿Perdiste algo en la universidad? Busca en nuestro catálogo público oficial e inicia tu reclamación fácilmente.
         </p>
       </section>
 
@@ -182,7 +222,7 @@ export const CatalogPage: React.FC = () => {
                     : "border-gray-200 hover:bg-gray-50 text-gray-600"
                 }`}
               >
-                {cat}
+                {CATEGORY_LABELS[cat] || cat}
               </button>
             ))}
           </div>
@@ -250,7 +290,7 @@ export const CatalogPage: React.FC = () => {
                   {/* Badge de Categoría */}
                   <div className="absolute top-3 left-3 z-10">
                     <Badge className="bg-brand-coral hover:bg-brand-coral text-white text-[10px] font-mono tracking-wider px-2.5 py-1 rounded-sm uppercase">
-                      {obj.category}
+                      {CATEGORY_LABELS[obj.category] || obj.category}
                     </Badge>
                   </div>
                 </div>
@@ -342,7 +382,7 @@ export const CatalogPage: React.FC = () => {
                   <p className="text-sm text-gray-500 mt-0.5">{claimObject.name}</p>
                   <div className="flex items-center gap-2 mt-1.5">
                     <Badge className="bg-brand-coral hover:bg-brand-coral text-white text-[9px] font-mono tracking-wider px-2 py-0.5 rounded-sm uppercase">
-                      {claimObject.category}
+                      {CATEGORY_LABELS[claimObject.category] || claimObject.category}
                     </Badge>
                     <span className="text-[10px] text-gray-400 font-mono flex items-center gap-1">
                       <MapPin className="h-3 w-3" /> {claimObject.location}
@@ -389,8 +429,8 @@ export const CatalogPage: React.FC = () => {
                     onChange={(e) => updateEvidence(index, "type", e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none"
                   >
-                    {Object.values(EvidenceType).map((type) => (
-                      <option key={type} value={type}>{type.replace(/_/g, " ")}</option>
+                    {getEvidenceTypes(claimObject?.category || "").map((type) => (
+                      <option key={type} value={type}>{EVIDENCE_LABELS[type] || type}</option>
                     ))}
                   </select>
 
@@ -402,6 +442,35 @@ export const CatalogPage: React.FC = () => {
                     rows={3}
                     className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none"
                   />
+
+                  {/* Upload de foto para REFERENCE_PHOTO */}
+                  {ev.type === EvidenceType.REFERENCE_PHOTO && (
+                    <div>
+                      {ev.url ? (
+                        <div className="relative inline-block">
+                          <img src={ev.url} alt="Evidencia" className="max-h-32 rounded-lg border border-gray-200 object-cover" />
+                          <button
+                            onClick={() => updateEvidence(index, "url", "")}
+                            className="absolute -top-2 -right-2 h-5 w-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-red-600"
+                          >✕</button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center gap-2 py-2 px-3 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 cursor-pointer hover:border-brand-green hover:text-brand-green transition-colors">
+                          <Upload className="h-3.5 w-3.5" />
+                          <span>Adjuntar foto</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleEvidenceFile(index, file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
 

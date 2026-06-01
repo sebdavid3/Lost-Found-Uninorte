@@ -2,12 +2,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { type User, Role } from "../types";
 
-const DEV = import.meta.env.DEV;
-
-const USER_API = DEV ? "" : (import.meta.env.VITE_USER_API_URL || "http://localhost:3002");
-
-const usersPath = (pathname: string) => DEV ? `/api${pathname}` : pathname;
-
 const QUICK_USERS = [
   { email: "admin@uninorte.edu.co", name: "Administrador", role: Role.ADMIN },
   { email: "carre@uninorte.edu.co", name: "Andrés Carrero", role: Role.STUDENT },
@@ -37,7 +31,7 @@ export const useAuthStore = create<AuthStoreState>()(
       login: async (email: string, role?: Role) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${USER_API}${usersPath("/users/me")}?email=${encodeURIComponent(email)}`);
+          const res = await fetch(`/api/users/me?email=${encodeURIComponent(email)}`);
           if (!res.ok) throw new Error("Error al conectar con el servidor");
 
           const data = await res.json();

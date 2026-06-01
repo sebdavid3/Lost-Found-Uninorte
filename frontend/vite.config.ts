@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import path from "path"
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "VITE_")
+  const env = loadEnv(mode, __dirname, "VITE_")
 
   const claimsTarget = env.VITE_CLAIMS_API_URL || "http://localhost:3000"
   const auditTarget  = env.VITE_AUDIT_API_URL   || "http://localhost:3001"

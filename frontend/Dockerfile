@@ -3,10 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 COPY . .
-ARG VITE_CLAIMS_API_URL=http://localhost:3000
-ARG VITE_AUDIT_API_URL=http://localhost:3001
-ARG VITE_USER_API_URL=http://localhost:3002
-ARG VITE_OBJECT_API_URL=http://localhost:3003
 RUN npm run build
 
 FROM nginx:alpine

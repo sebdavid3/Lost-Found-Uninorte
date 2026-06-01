@@ -72,7 +72,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
+    command: sh -c "npx prisma db push && npm run seed && npm run start:prod"
 
   object-service:
     build:
@@ -100,7 +100,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
+    command: sh -c "npx prisma db push && npm run seed && npm run start:prod"
 
   claim-service:
     build:
@@ -114,7 +114,7 @@ services:
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
       NODE_ENV: ${NODE_ENV:-development}
       CONSUL_HOST: ${CONSUL_HOST:-consul}
-      CONSUL_PORT: ${CONSUL_PORT:-8500}
+      CONSUL_PORT: '8500'
       SERVICE_HOST: ${CLAIMS_SERVICE_HOST:-claim-service}
       SERVICE_PORT: ${CLAIMS_SERVICE_PORT:-3000}
       PORT: ${CLAIMS_SERVICE_PORT:-3000}
@@ -142,7 +142,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run start:prod"
 
   frontend:
     build:

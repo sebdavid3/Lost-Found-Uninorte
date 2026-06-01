@@ -138,16 +138,15 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 async function main() {
   console.log('🌱 Iniciando seeder de objetos...');
+  await prisma.object.deleteMany();
   const objects = [];
   for (let i = 0; i < OBJECT_DEFS.length; i++) {
     const def = OBJECT_DEFS[i];
     const photo = PHOTOS[def.category][i % PHOTOS[def.category].length];
     const storageLocation = pick(SHELVES);
     const foundAt = new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
-    const obj = await prisma.object.upsert({
-      where: { id: undefined },
-      update: {},
-      create: {
+    const obj = await prisma.object.create({
+      data: {
         name: def.name,
         description: def.description,
         photo,

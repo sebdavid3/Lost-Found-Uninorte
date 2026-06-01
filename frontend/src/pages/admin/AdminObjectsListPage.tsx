@@ -13,6 +13,7 @@ interface ObjectForm {
   photo: string;
   category: string;
   location: string;
+  storageLocation: string;
 }
 
 const EMPTY_FORM: ObjectForm = {
@@ -21,6 +22,7 @@ const EMPTY_FORM: ObjectForm = {
   photo: "",
   category: "",
   location: "",
+  storageLocation: "",
 };
 
 const toBase64 = (file: File): Promise<string> =>
@@ -68,7 +70,7 @@ export const AdminObjectsListPage: React.FC = () => {
 
   const openEditModal = (obj: FoundObject) => {
     setSelectedObject(obj);
-    setForm({ name: obj.name, description: obj.description, photo: obj.photo, category: obj.category, location: obj.location });
+    setForm({ name: obj.name, description: obj.description, photo: obj.photo, category: obj.category, location: obj.location, storageLocation: obj.storageLocation || "" });
     setPreviewUrl(obj.photo);
     setEditModalOpen(true);
   };
@@ -103,6 +105,7 @@ export const AdminObjectsListPage: React.FC = () => {
         photo: form.photo.trim(),
         category: form.category as ObjectCategory,
         location: form.location.trim(),
+        storageLocation: form.storageLocation.trim() || undefined,
       });
       toast.success("Objeto registrado en el inventario.");
       setCreateModalOpen(false);
@@ -127,6 +130,7 @@ export const AdminObjectsListPage: React.FC = () => {
     if (form.photo && form.photo !== selectedObject.photo) patch.photo = form.photo;
     if (form.category && form.category !== selectedObject.category) patch.category = form.category;
     if (form.location.trim() && form.location.trim() !== selectedObject.location) patch.location = form.location.trim();
+    if (form.storageLocation.trim() && form.storageLocation.trim() !== (selectedObject.storageLocation || "")) patch.storageLocation = form.storageLocation.trim();
 
     try {
       await api.updateObject(selectedObject.id, patch);
@@ -216,6 +220,11 @@ export const AdminObjectsListPage: React.FC = () => {
           <input type="text" value={form.location} onChange={(e) => setForm(f => ({ ...f, location: e.target.value }))}
             placeholder="ej: Biblioteca 2do Piso" className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition" />
         </div>
+        <div>
+          <label className="text-xs font-mono text-gray-400 uppercase tracking-widest font-bold block mb-1.5">Ubicación en depósito</label>
+          <input type="text" value={form.storageLocation} onChange={(e) => setForm(f => ({ ...f, storageLocation: e.target.value }))}
+            placeholder="ej: Estante 3 - Caja 5" className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition" />
+        </div>
       </div>
       <PhotoField />
     </div>
@@ -249,6 +258,7 @@ export const AdminObjectsListPage: React.FC = () => {
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest pl-6">Foto</TableHead>
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest">Nombre</TableHead>
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest">Ubicación</TableHead>
+                  <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest">Depósito</TableHead>
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest">Encontrado</TableHead>
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest">Categoría</TableHead>
                   <TableHead className="font-mono text-xs text-gray-400 uppercase tracking-widest pr-6 text-right">Acciones</TableHead>
@@ -272,6 +282,9 @@ export const AdminObjectsListPage: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-gray-600">
                       <div className="flex items-center gap-1 text-xs"><MapPin className="h-3.5 w-3.5 text-gray-400" /><span>{obj.location}</span></div>
+                    </TableCell>
+                    <TableCell className="text-xs text-gray-500 font-mono">
+                      {obj.storageLocation || "—"}
                     </TableCell>
                     <TableCell className="text-xs text-gray-400 font-mono">
                       <div className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-gray-400" /><span>{new Date(obj.foundAt).toLocaleDateString()}</span></div>

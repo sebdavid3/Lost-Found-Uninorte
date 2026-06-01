@@ -47,6 +47,7 @@ export const CatalogPage: React.FC = () => {
   const [evidences, setEvidences] = useState<{ type: EvidenceType; description: string; url?: string }[]>([
     { type: EvidenceType.DETAILED_DESCRIPTION, description: "" },
   ]);
+  const [lostLocation, setLostLocation] = useState("");
 
   // Debounce de búsqueda (300ms)
   useEffect(() => {
@@ -92,6 +93,7 @@ export const CatalogPage: React.FC = () => {
     setClaimObject(obj);
     const types = getEvidenceTypes(obj.category);
     setEvidences(types.map(type => ({ type, description: "" })));
+    setLostLocation("");
     setClaimModalOpen(true);
   };
 
@@ -143,6 +145,7 @@ export const CatalogPage: React.FC = () => {
         userId: user.id,
         objectId: claimObject.id,
         objectCategory: claimObject.category,
+        lostLocation: lostLocation || undefined,
         evidences: evidences.map(ev => ({
           type: ev.type,
           description: ev.description.trim(),
@@ -404,6 +407,24 @@ export const CatalogPage: React.FC = () => {
                 <p className="text-xs text-gray-500 mb-4 leading-relaxed">
                   Para verificar que eres el dueño legítimo, proporciona al menos una evidencia que demuestre tu posesión del objeto. Mientras más detallada, más rápida será la aprobación.
                 </p>
+              </div>
+
+              {/* Ubicación de pérdida */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono text-gray-400 uppercase tracking-widest font-bold">
+                  ¿Dónde lo perdiste? (opcional)
+                </label>
+                <select
+                  value={lostLocation}
+                  onChange={(e) => setLostLocation(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none"
+                >
+                  <option value="">No recuerdo / No aplica</option>
+                  <option disabled>── Bloques del campus ──</option>
+                  {["A","B","C","D","E","F","G","H","I","J","K","L","M"].map(blk => (
+                    <option key={blk} value={`Bloque ${blk}`}>Bloque {blk}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Lista de evidencias */}

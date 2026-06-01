@@ -144,7 +144,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
 
 networks:
   lost_found_network:

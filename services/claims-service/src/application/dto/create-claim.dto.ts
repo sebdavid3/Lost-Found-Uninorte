@@ -42,4 +42,8 @@ export class CreateClaimDto {
   @ValidateNested({ each: true })
   @Type(() => EvidenceDto)
   evidences: EvidenceDto[];
+
+  @IsString()
+  @IsOptional()
+  lostLocation?: string;
 }

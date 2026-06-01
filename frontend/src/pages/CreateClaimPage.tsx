@@ -1,4 +1,3 @@
-import React from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { CreateClaimSchema } from '../schemas/claims'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,8 +18,16 @@ export default function CreateClaimPage(){
         </div>
         <div>
           <label className="block text-sm">Evidencias (JSON)</label>
-          <Controller control={control} name="evidences" defaultValue={[{type:'PHOTO',description:'foto'}]} render={({field})=> (
-            <textarea {...field} className="w-full border rounded p-2" rows={4} />
+           <Controller control={control} name="evidences" defaultValue={[{type:'PHOTO',description:'foto'}]} render={({field})=> (
+            <textarea
+              value={JSON.stringify(field.value, null, 2)}
+              onChange={(e) => { try { field.onChange(JSON.parse(e.target.value)) } catch {} }}
+              onBlur={field.onBlur}
+              name={field.name}
+              ref={field.ref}
+              className="w-full border rounded p-2"
+              rows={4}
+            />
           )} />
         </div>
         <button type="submit" className="px-3 py-1 bg-blue-600 text-white rounded">Enviar</button>

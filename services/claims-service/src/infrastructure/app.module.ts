@@ -45,5 +45,6 @@ if (!rabbitMqUrl || rabbitMqUrl.trim() === '') {
       useClass: AuditLogInterceptor,
     },
   ],
+  exports: [AppService],
 })
 export class AppModule {}

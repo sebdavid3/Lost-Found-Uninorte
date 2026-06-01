@@ -75,6 +75,7 @@ export interface FoundObject {
   photo: string;
   category: ObjectCategory;
   location: string;
+  storageLocation?: string | null;
   foundAt: string;
   createdAt: string;
   updatedAt: string;
@@ -91,6 +92,7 @@ export interface Claim {
   id: string;
   status: ClaimStatus;
   rejectionReason?: string | null;
+  lostLocation?: string | null;
   userId: string;
   objectId: string;
   user?: User;
@@ -104,4 +106,47 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+export interface CategoryStats {
+  category: string;
+  count: number;
+  claims: number;
+}
+
+export interface ClaimsByDay {
+  date: string;
+  created: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface RecentActivity {
+  id: string;
+  user: string;
+  object: string;
+  category: string;
+  status: string;
+  date: string;
+}
+
+export interface DashboardStats {
+  objects: {
+    total: number;
+    byCategory: CategoryStats[];
+    byLocation: { location: string; count: number }[];
+    recentAdded: number;
+  };
+  claims: {
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    recentCreated: number;
+    recentApproved: number;
+    recentRejected: number;
+    byDay: ClaimsByDay[];
+    byLostLocation: { location: string; count: number }[];
+  };
+  recentActivity: RecentActivity[];
 }

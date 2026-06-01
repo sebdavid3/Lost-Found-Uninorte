@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
 import { ObjectCategory } from '@prisma/client';
 
 export class CreateObjectDto {
@@ -21,4 +21,8 @@ export class CreateObjectDto {
   @IsString()
   @IsNotEmpty()
   location: string;
+
+  @IsString()
+  @IsOptional()
+  storageLocation?: string;
 }

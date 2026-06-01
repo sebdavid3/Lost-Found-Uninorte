@@ -53,16 +53,6 @@ export class AppController {
   }
 
   // ─── REGISTRY VIEWER ──────────────────────────────────────────────────────
-  // Endpoint para demostrar Service Discovery en la exposición.
-  // Muestra en tiempo real qué instancias de un servicio están registradas
-  // y saludables en Consul.
-  //
-  // Ejemplo de uso:
-  //   GET /registry/claims-service
-  //   → { "service": "claims-service", "totalInstances": 1, "instances": [...] }
-  //
-  // Si escalas con: docker compose scale claims-service=3
-  // → totalInstances será 3, mostrando cada instancia con su ID único.
   @Get('registry/:serviceName')
   async getServiceInstances(@Param('serviceName') serviceName: string) {
     const instances =
@@ -74,5 +64,11 @@ export class AppController {
       instances,
       discoveredAt: new Date().toISOString(),
     };
+  }
+
+  // ─── DASHBOARD STATS ──────────────────────────────────────────────────────
+  @Get('stats/dashboard')
+  async getDashboardStats() {
+    return this.appService.getDashboardStats();
   }
 }

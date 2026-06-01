@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function EmptyState({title, description}:{title?:string, description?:string}){
   return (
     <div className="w-full flex flex-col items-center justify-center py-12">

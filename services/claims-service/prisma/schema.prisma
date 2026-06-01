@@ -53,17 +53,18 @@ model User {
 }
 
 model Object {
-  id          String         @id @default(uuid())
-  name        String
-  description String
-  photo       String         // Regla de Negocio: Todo objeto debe tener una fotografía.
-  category    ObjectCategory
-  location    String
-  status      String         @default("AVAILABLE")
-  foundAt     DateTime       @default(now())
-  claims      Claim[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id               String         @id @default(uuid())
+  name             String
+  description      String
+  photo            String
+  category         ObjectCategory
+  location         String
+  storageLocation  String?
+  status           String         @default("AVAILABLE")
+  foundAt          DateTime       @default(now())
+  claims           Claim[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([category])
   @@index([location])
@@ -71,16 +72,17 @@ model Object {
 }
 
 model Claim {
-  id        String      @id @default(uuid())
-  status    ClaimStatus @default(PENDING)
+  id              String      @id @default(uuid())
+  status          ClaimStatus @default(PENDING)
   rejectionReason String?
-  user      User        @relation(fields: [userId], references: [id])
-  userId    String
-  object    Object      @relation(fields: [objectId], references: [id])
-  objectId  String
-  evidences Evidence[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  lostLocation    String?
+  user            User        @relation(fields: [userId], references: [id])
+  userId          String
+  object          Object      @relation(fields: [objectId], references: [id])
+  objectId        String
+  evidences       Evidence[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([userId])
   @@index([objectId])

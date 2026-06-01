@@ -21,7 +21,7 @@ export class ClaimsService {
   ) {}
 
   async create(createClaimDto: CreateClaimDto, actor?: AuditActorContext) {
-    const { userId, objectId, evidences } = createClaimDto;
+    const { userId, objectId, evidences, lostLocation } = createClaimDto;
 
     // 1. Validar que el usuario especificado exista en la base de datos (F22)
     const userExists = await this.prisma.user.findUnique({
@@ -67,6 +67,7 @@ export class ClaimsService {
         data: {
           userId,
           objectId,
+          lostLocation,
           evidences: {
             create: evidences.map(e => ({
               type: e.type,

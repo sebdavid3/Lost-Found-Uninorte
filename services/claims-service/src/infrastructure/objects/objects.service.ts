@@ -85,6 +85,7 @@ export class ObjectsService {
           photo: dto.photo,
           category: dto.category,
           location: dto.location,
+          storageLocation: dto.storageLocation,
           status: 'AVAILABLE',
         },
       });

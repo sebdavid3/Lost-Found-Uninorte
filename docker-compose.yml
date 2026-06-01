@@ -142,7 +142,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma db push && npx prisma db seed && npm run start:prod"
+    command: sh -c "npx prisma db push --accept-data-loss && npx prisma db seed && npm run start:prod"
 
   frontend:
     build:

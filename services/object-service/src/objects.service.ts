@@ -11,6 +11,7 @@ export interface ObjectFilters {
   limit?: number;
   foundAtStart?: string;
   foundAtEnd?: string;
+  status?: string;
 }
 
 export interface PaginatedResult<T> {
@@ -29,6 +30,14 @@ export class ObjectsService {
     const limit = Math.min(100, Math.max(1, filters.limit || 20));
     const skip = (page - 1) * limit;
     const where: any = {};
+
+    if (filters.status && filters.status.trim() !== '') {
+      if (filters.status !== 'ALL') {
+        where.status = filters.status.trim();
+      }
+    } else {
+      where.status = 'AVAILABLE';
+    }
     if (filters.q && filters.q.trim() !== '') {
       const searchTerm = filters.q.trim();
       where.OR = [

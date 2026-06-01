@@ -50,7 +50,7 @@ export const AdminObjectsListPage: React.FC = () => {
   const fetchObjects = async (p: number = page) => {
     setLoading(true);
     try {
-      const res = await api.getObjects({}, p, 10);
+      const res = await api.getObjects({ status: "ALL" }, p, 10);
       setData(res);
       setPage(p);
     } catch (err: any) {

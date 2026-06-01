@@ -20,8 +20,8 @@ const toBase64 = (file: File): Promise<string> =>
   });
 
 const EVIDENCE_BY_CATEGORY: Record<string, EvidenceType[]> = {
-  ELECTRONIC: [EvidenceType.SERIAL_NUMBER, EvidenceType.DIGITAL_INVOICE],
-  DEFAULT: [EvidenceType.DETAILED_DESCRIPTION, EvidenceType.REFERENCE_PHOTO],
+  ELECTRONIC: [EvidenceType.SERIAL_NUMBER, EvidenceType.DIGITAL_INVOICE, EvidenceType.REFERENCE_PHOTO, EvidenceType.DETAILED_DESCRIPTION, EvidenceType.LOCATION_DETAIL],
+  DEFAULT: [EvidenceType.DETAILED_DESCRIPTION, EvidenceType.REFERENCE_PHOTO, EvidenceType.LOCATION_DETAIL, EvidenceType.DIGITAL_INVOICE, EvidenceType.SERIAL_NUMBER],
 };
 
 const getEvidenceTypes = (category: string): EvidenceType[] =>
@@ -420,6 +420,17 @@ export const CatalogPage: React.FC = () => {
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none"
                 >
                   <option value="">No recuerdo / No aplica</option>
+                  <option disabled>── Sitios de interés ──</option>
+                  <option value="Biblioteca">Biblioteca</option>
+                  <option value="Casa de Estudio">Casa de Estudio</option>
+                  <option value="DuNord Plaza">DuNord Plaza</option>
+                  <option value="DuNord Cafe">DuNord Cafe</option>
+                  <option value="DuNord Terrasse">DuNord Terrasse</option>
+                  <option value="Bocas de Ceniza">Bocas de Ceniza</option>
+                  <option value="Bambú del J">Bambú del J</option>
+                  <option value="Bambú del K">Bambú del K</option>
+                  <option value="Centro Médico">Centro Médico</option>
+                  <option value="Plaza de los Inmigrantes">Plaza de los Inmigrantes</option>
                   <option disabled>── Bloques del campus ──</option>
                   {["A","B","C","D","E","F","G","H","I","J","K","L","M"].map(blk => (
                     <option key={blk} value={`Bloque ${blk}`}>Bloque {blk}</option>

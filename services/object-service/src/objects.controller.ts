@@ -18,6 +18,7 @@ export class ObjectsController {
     @Query('limit') limit?: string,
     @Query('foundAtStart') foundAtStart?: string,
     @Query('foundAtEnd') foundAtEnd?: string,
+    @Query('status') status?: string,
   ) {
     return this.objectsService.findAll({
       q,
@@ -27,6 +28,7 @@ export class ObjectsController {
       limit: limit ? parseInt(limit, 10) : undefined,
       foundAtStart,
       foundAtEnd,
+      status,
     });
   }
 

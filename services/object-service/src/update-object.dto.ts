@@ -25,4 +25,8 @@ export class UpdateObjectDto {
   @IsString()
   @IsOptional()
   storageLocation?: string;
+
+  @IsString()
+  @IsOptional()
+  status?: string;
 }

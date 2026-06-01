@@ -65,11 +65,12 @@ export interface Paginated<T> {
 
 export const api = {
   // --- Objetos (Objects CRUD) ---
-  getObjects: async (filters: { category?: string; location?: string; q?: string } = {}, page = 1, limit = 20): Promise<Paginated<FoundObject>> => {
+  getObjects: async (filters: { category?: string; location?: string; q?: string; status?: string } = {}, page = 1, limit = 20): Promise<Paginated<FoundObject>> => {
     const params = new URLSearchParams();
     if (filters.category) params.append("category", filters.category);
     if (filters.location) params.append("location", filters.location);
     if (filters.q) params.append("q", filters.q);
+    if (filters.status) params.append("status", filters.status);
     params.append("page", String(page));
     params.append("limit", String(limit));
 

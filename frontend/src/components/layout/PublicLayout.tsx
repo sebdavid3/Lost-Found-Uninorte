@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { Role } from "../../types";
 import { LogIn, LogOut, Shield, FileText } from "lucide-react";
 import { Button } from "../ui/button";
+import { api } from "../../lib/api";
 
 export const PublicLayout: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [hasApprovedClaims, setHasApprovedClaims] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user && user.role === Role.STUDENT) {
+      api.getMyClaims(1, 100)
+        .then((res) => {
+          const approved = res.items?.some((c: any) => c.status === "APPROVED");
+          setHasApprovedClaims(!!approved);
+        })
+        .catch((e) => console.error("Error check approved claims:", e));
+    } else {
+      setHasApprovedClaims(false);
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-brand-black antialiased font-body">
@@ -58,6 +73,12 @@ export const PublicLayout: React.FC = () => {
                   >
                     <FileText className="h-4 w-4" />
                     Mis Reclamos
+                    {hasApprovedClaims && (
+                      <span className="relative flex h-2 w-2 ml-0.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                    )}
                   </Link>
                 ) : (
                   <Link 

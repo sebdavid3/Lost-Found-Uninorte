@@ -208,6 +208,12 @@ export class ClaimsController {
         return updated;
       });
 
+      try {
+        await this.objectClient.updateStatus(claim.objectId, 'CLAIMED');
+      } catch (error: any) {
+        console.error('Error al actualizar el estado del objeto en object-service:', error.message);
+      }
+
       const enriched = await this.enrichClaim(approvedClaim);
       return {
         message: 'Reclamación verificada exitosamente y aprobada.',

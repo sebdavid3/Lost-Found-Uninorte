@@ -142,17 +142,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run start:prod"
+    command: sh -c "npx prisma db push && npx prisma db seed && npm run start:prod"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_CLAIMS_API_URL: http://localhost:${CLAIMS_PUBLIC_PORT:-3000}
-        VITE_AUDIT_API_URL: http://localhost:${AUDIT_PUBLIC_PORT:-3001}
-        VITE_USER_API_URL: http://localhost:${USER_PUBLIC_PORT:-3002}
-        VITE_OBJECT_API_URL: http://localhost:${OBJECT_PUBLIC_PORT:-3003}
+        VITE_CLAIMS_API_URL: http://127.0.0.1:${CLAIMS_PUBLIC_PORT:-3000}
+        VITE_AUDIT_API_URL: http://127.0.0.1:${AUDIT_PUBLIC_PORT:-3001}
+        VITE_USER_API_URL: http://127.0.0.1:${USER_PUBLIC_PORT:-3002}
+        VITE_OBJECT_API_URL: http://127.0.0.1:${OBJECT_PUBLIC_PORT:-3003}
     container_name: lost_found_frontend
     ports:
       - '${FRONTEND_PUBLIC_PORT:-5173}:80'
@@ -216,7 +216,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
+    command: sh -c "npx prisma db push && npm run seed && npm run start:prod"
 
 networks:
   lost_found_network:

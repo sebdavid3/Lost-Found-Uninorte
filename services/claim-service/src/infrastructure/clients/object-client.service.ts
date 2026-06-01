@@ -39,4 +39,15 @@ export class ObjectClientService {
     if (data && data.items) return data.items;
     return Array.isArray(data) ? data : [];
   }
+
+  async updateStatus(id: string, status: string): Promise<any> {
+    const res = await firstValueFrom(
+      this.http.patch(
+        `${this.baseUrl}/objects/${id}`,
+        { status },
+        { headers: { 'x-user-role': 'ADMIN' } }
+      )
+    );
+    return res.data;
+  }
 }

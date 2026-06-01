@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum ObjectCategory {
+  ELECTRONIC
+  COMMON
+  CLOTHING
+  STATIONERY
+  DOCUMENT
+  ACCESSORY
+  OTHER
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+model Claim {
+  id              String      @id @default(uuid())
+  status          ClaimStatus @default(PENDING)
+  rejectionReason String?
+  lostLocation    String?
+  userId          String
+  objectId        String
+  evidences       Evidence[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([objectId])
+  @@index([status])
+  @@index([objectId, status])
+  @@unique([userId, objectId])
+}
+
+model Evidence {
+  id          String   @id @default(uuid())
+  url         String?
+  type        String
+  description String?
+  claim       Claim    @relation(fields: [claimId], references: [id])
+  claimId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([claimId])
+}
+
+model OutboxEvent {
+  id            String      @id @default(uuid())
+  topic         String
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  retryCount    Int         @default(0)
+  nextAttemptAt DateTime    @default(now())
+  lastError     String?
+  publishedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status, nextAttemptAt])
+}

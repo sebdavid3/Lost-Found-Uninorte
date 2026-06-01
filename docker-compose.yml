@@ -12,6 +12,7 @@ services:
       - '${DB_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -25,8 +26,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: lost_found_mq
     ports:
-      - '${RABBITMQ_PORT:-5672}:5672'   # Puerto de mensajes
-      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672' # Panel de administración (user: guest, pass: guest)
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
     networks:
       - lost_found_network
     healthcheck:
@@ -39,32 +40,90 @@ services:
     image: hashicorp/consul:1.17
     container_name: lost_found_consul
     ports:
-      - '${CONSUL_PORT:-8500}:8500' # UI + HTTP API
+      - '${CONSUL_PORT:-8500}:8500'
     command: agent -dev -client=0.0.0.0
     networks:
       - lost_found_network
     restart: unless-stopped
 
-  claims-service:
+  user-service:
     build:
-      context: ./services/claims-service
+      context: ./services/user-service
       dockerfile: Dockerfile
-    container_name: lost_found_claims_service
+    container_name: lost_found_user_service
+    ports:
+      - '${USER_PUBLIC_PORT:-3002}:3002'
+    environment:
+      DATABASE_URL: ${USER_DATABASE_URL:-postgresql://admin:password123@db:5432/lost_found_users?schema=public}
+      NODE_ENV: ${NODE_ENV:-development}
+      SERVICE_PORT: ${USER_SERVICE_PORT:-3002}
+      PORT: ${USER_SERVICE_PORT:-3002}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174}
+    volumes:
+      - ./services/user-service/src:/usr/src/app/src
+      - ./services/user-service/prisma:/usr/src/app/prisma
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lost_found_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3002}/health\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
+
+  object-service:
+    build:
+      context: ./services/object-service
+      dockerfile: Dockerfile
+    container_name: lost_found_object_service
+    ports:
+      - '${OBJECT_PUBLIC_PORT:-3003}:3003'
+    environment:
+      DATABASE_URL: ${OBJECT_DATABASE_URL:-postgresql://admin:password123@db:5432/lost_found_objects?schema=public}
+      NODE_ENV: ${NODE_ENV:-development}
+      SERVICE_PORT: ${OBJECT_SERVICE_PORT:-3003}
+      PORT: ${OBJECT_SERVICE_PORT:-3003}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174}
+    volumes:
+      - ./services/object-service/src:/usr/src/app/src
+      - ./services/object-service/prisma:/usr/src/app/prisma
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lost_found_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3003}/health\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: sh -c "npx prisma migrate deploy && npm run seed && npm run start:prod"
+
+  claim-service:
+    build:
+      context: ./services/claim-service
+      dockerfile: Dockerfile
+    container_name: lost_found_claim_service
     ports:
       - '${CLAIMS_PUBLIC_PORT:-3000}:3000'
     environment:
-      DATABASE_URL: ${CLAIMS_DATABASE_URL:-postgresql://admin:password123@db:5432/lost_found_uninorte?schema=public}
+      DATABASE_URL: ${CLAIMS_DATABASE_URL:-postgresql://admin:password123@db:5432/lost_found_claims?schema=public}
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
       NODE_ENV: ${NODE_ENV:-development}
       CONSUL_HOST: ${CONSUL_HOST:-consul}
       CONSUL_PORT: ${CONSUL_PORT:-8500}
-      SERVICE_HOST: ${CLAIMS_SERVICE_HOST:-claims-service}
+      SERVICE_HOST: ${CLAIMS_SERVICE_HOST:-claim-service}
       SERVICE_PORT: ${CLAIMS_SERVICE_PORT:-3000}
       PORT: ${CLAIMS_SERVICE_PORT:-3000}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:3002}
+      OBJECT_SERVICE_URL: ${OBJECT_SERVICE_URL:-http://object-service:3003}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174}
     volumes:
-      - ./services/claims-service/src:/usr/src/app/src
-      - ./services/claims-service/prisma:/usr/src/app/prisma
+      - ./services/claim-service/src:/usr/src/app/src
+      - ./services/claim-service/prisma:/usr/src/app/prisma
     depends_on:
       db:
         condition: service_healthy
@@ -72,14 +131,18 @@ services:
         condition: service_healthy
       consul:
         condition: service_started
+      user-service:
+        condition: service_started
+      object-service:
+        condition: service_started
     networks:
       - lost_found_network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3000}/\""]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider \"http://localhost:$${SERVICE_PORT:-3000}/health\""]
       interval: 10s
       timeout: 5s
       retries: 3
-    command: sh -c "npx prisma migrate deploy && npm run seed:objects && npm run start:prod"
+    command: sh -c "npx prisma migrate deploy && npm run start:prod"
 
   frontend:
     build:
@@ -89,8 +152,12 @@ services:
     ports:
       - '${FRONTEND_PUBLIC_PORT:-5173}:80'
     depends_on:
-      claims-service:
+      claim-service:
         condition: service_healthy
+      user-service:
+        condition: service_started
+      object-service:
+        condition: service_started
     networks:
       - lost_found_network
     restart: unless-stopped

@@ -1,0 +1,37 @@
+graph LR
+    subgraph "Docker Compose: lost_found_network"
+        DB[("PostgreSQL<br/>db:5432<br/>lost_found_users + objects + claims")]
+        AUDIT_DB[("PostgreSQL<br/>audit-db:5432<br/>audit_log_db")]
+        RMQ[("RabbitMQ<br/>rabbitmq:5672")]
+        CONSUL[("Consul<br/>consul:8500")]
+        US["user-service<br/>:3002"]
+        OS["object-service<br/>:3003"]
+        CS["claim-service<br/>:3000"]
+        AUDIT["audit-service<br/>:3001"]
+        FE["frontend<br/>:5173"]
+    end
+
+    US -->|"Prisma<br/>DATABASE_URL"| DB
+    OS -->|"Prisma<br/>DATABASE_URL"| DB
+    CS -->|"Prisma<br/>DATABASE_URL"| DB
+    AUDIT -->|"Prisma<br/>DATABASE_URL"| AUDIT_DB
+    CS -->|"AMQP<br/>RABBITMQ_URL"| RMQ
+    AUDIT -->|"AMQP<br/>RABBITMQ_URL"| RMQ
+    CS -->|"HTTP API<br/>Service Discovery"| CONSUL
+    FE -->|"REST API"| US
+    FE -->|"REST API"| OS
+    FE -->|"REST API"| CS
+    FE -->|"REST API"| AUDIT
+    CS -->|"HTTP /users/{id}"| US
+    CS -->|"HTTP /objects/{id}"| OS
+    RMQ -->|"Queue: audit_events_queue<br/>Pattern: audit.event.created"| AUDIT
+
+    style US fill:#0f766e,stroke:#14b8a6,color:#fff
+    style OS fill:#3f6212,stroke:#84cc16,color:#fff
+    style CS fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style AUDIT fill:#581c87,stroke:#a855f7,color:#fff
+    style FE fill:#064e3b,stroke:#10b981,color:#fff
+    style DB fill:#7f1d1d,stroke:#ef4444,color:#fff
+    style AUDIT_DB fill:#7f1d1d,stroke:#ef4444,color:#fff
+    style RMQ fill:#713f12,stroke:#f59e0b,color:#fff
+    style CONSUL fill:#4338ca,stroke:#818cf8,color:#fff

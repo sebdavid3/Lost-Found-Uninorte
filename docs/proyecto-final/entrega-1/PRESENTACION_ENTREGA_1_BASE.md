@@ -58,8 +58,8 @@ Abril 2026
 | Andres Carrero | Saga | Implementado |
 | Sebastian Ibanez | Audit Log | Implementado |
 | Ayen Henriquez | Service Discovery | Implementado (claims-service) |
-| Luis Robles | Outbox Pattern | En diseno (pendiente) |
-| Andres Serrano | Anti-Corruption Layer | En diseno (pendiente) |
+| Luis Robles | Outbox Pattern | Implementado |
+| Andres Serrano | Anti-Corruption Layer | Implementado |
 
 ---
 
@@ -372,7 +372,7 @@ Solucion (Saga orquestada):
 - Orquestar el flujo como proceso multi-paso.
 - Aplicar compensacion de negocio ante fallos (rechazo con motivo) en lugar de rollback distribuido.
 
-Donde vive (evidencia en codigo):
+Where vive (evidencia en codigo):
 
 - `claims-service`: endpoint `POST /claims/:id/verify` (orquestador).
 
@@ -403,29 +403,28 @@ Demo rapida (evidencia en vivo):
 
 ---
 
-# Patron - Outbox Pattern (Placeholder)
+# Patron - Outbox Pattern
 
-Estado: En diseno (pendiente)
+**Estado:** Implementado (Luis Robles)
 
-Completar en esta seccion:
-
-- Tabla outbox y esquema.
-- Publicador, reintentos e idempotencia.
-- Integracion con transaccion del dominio.
-- Garantias de entrega.
+### Garantia de consistencia eventual BD - Broker
+- **Modelo `OutboxEvent`:** Guarda el tópico, la carga útil JSON y el estado del mensaje en la base de datos de claims.
+- **Encolado Transaccional:** `outboxService.enqueueAuditEvent(tx, payload)` corre en la misma transacción que el negocio, garantizando que el evento solo se persiste si el cambio en la reclamación es exitoso.
+- **Publicador Periódico (`OutboxPublisherService`):** Corre en segundo plano cada 5 segundos.
+- **Reserva Atómica:** Lotes de eventos se bloquean (`PROCESSING`) antes de ser enviados.
+- **Mecanismo de Reintentos:** Si falla la red o RabbitMQ, se aplica retraso exponencial (*exponential backoff*) y reintentos automáticos.
 
 ---
 
-# Patron - Anti-Corruption Layer (Placeholder)
+# Patron - Anti-Corruption Layer
 
-Estado: En diseno (pendiente)
+**Estado:** Implementado (Andrés Serrano)
 
-Completar en esta seccion:
-
-- Sistema externo objetivo.
-- Traduccion de contratos.
-- Mapeo DTO externo -> modelo de dominio.
-- Politica de errores y versionado.
+### Aislamiento de Dominio e Integración Segura
+- **Clase Adaptadora (`AntiCorruptionLayerService`):** Contiene y normaliza los payloads provenientes del exterior.
+- **Normalización de Entradas:** `normalizeCreateClaimInput(dto)` se encarga del formateo de tipos de evidencias (`SERIAL_NUMBER`, `REFERENCE_PHOTO`, etc.), limpieza de textos y homogeneización de enums para proteger la integridad del dominio.
+- **Protección de Datos en Salida (ACL):** Mapeo de Prisma a `ClaimResponseDto`. Filtra o añade información según rol (por ejemplo, oculta o muestra `rejectionReason` basándose en si el solicitante es `ADMIN` o `STUDENT`).
+- **Desacoplamiento:** Previene que cambios futuros en el backend o en APIs externas propaguen errores hacia el núcleo del dominio de claims.
 
 ---
 
@@ -450,8 +449,8 @@ Regla:
 | Andres Carrero | Saga | Diagrama de orquestacion + flujo |
 | Sebastian Ibanez | Audit Log | Flujo eventos + hash chain + endpoint integridad |
 | Ayen Henriquez | Service Discovery | `GET /health` + `GET /registry/:serviceName` + registro/desregistro en Consul |
-| Luis Robles | Outbox Pattern | Placeholder (pendiente por completar) |
-| Andres Serrano | Anti-Corruption Layer | Placeholder (pendiente por completar) |
+| Luis Robles | Outbox Pattern | Explicación del modelo OutboxEvent, persistencia transaccional y scheduler con backoff exponencial |
+| Andres Serrano | Anti-Corruption Layer | Explicación del flujo de DTOs, sanitización de entrada y control de visualización por roles |
 
 ---
 
@@ -462,15 +461,13 @@ Estado actual:
 - Audit Log implementado y validado.
 - Service Discovery implementado en `claims-service` (Consul + endpoints de demo).
 - Saga en progreso con evidencia del flujo de verificacion (orquestacion + compensacion).
-- Outbox Pattern y Anti-Corruption Layer: pendientes por completar por compañeros.
+- Outbox Pattern y Anti-Corruption Layer: Plenamente implementados y validados con pruebas automatizadas.
 
 Siguiente paso del equipo:
 
 1. Completar narrativa y demo corta de Saga (verify + estados).
 2. Hacer reproducible la demo de Service Discovery (Consul ya incluido en compose).
-3. Cerrar diagramas C4/BD/Figma.
-4. Completar evidencia y slides de Outbox Pattern y Anti-Corruption Layer.
-5. Ensayar exposicion con preguntas por integrante.
+3. Cerrar diagramas C4/BD/Figma y ensayar exposición grupal.
 
 ---
 

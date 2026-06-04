@@ -1,7 +1,7 @@
 # Entrega 1 - Documento Maestro
 
-Estado global: EN PROGRESO
-Ultima actualizacion: 2026-04-05
+Estado global: LISTO PARA REVISION
+Ultima actualizacion: 2026-05-28
 
 ## Objetivo
 Este documento consolida toda la Entrega 1 y referencia los documentos de trabajo por seccion para que el equipo pueda avanzar en paralelo.

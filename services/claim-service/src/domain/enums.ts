@@ -1,0 +1,14 @@
+export enum Role {
+  ADMIN = 'ADMIN',
+  STUDENT = 'STUDENT',
+}
+
+export enum ObjectCategory {
+  ELECTRONIC = 'ELECTRONIC',
+  COMMON = 'COMMON',
+  CLOTHING = 'CLOTHING',
+  STATIONERY = 'STATIONERY',
+  DOCUMENT = 'DOCUMENT',
+  ACCESSORY = 'ACCESSORY',
+  OTHER = 'OTHER',
+}

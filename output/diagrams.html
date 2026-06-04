@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lost & Found Uninorte — Diagramas de Arquitectura</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background-color: #0f172a; color: #e2e8f0; }
+    .sidebar { background-color: #1e293b; border-right: 1px solid #334155; }
+    .diagram-container { background: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; }
+    .meta { color: #94a3b8; font-size: 0.875rem; margin-top: 0.75rem; }
+    .meta strong { color: #cbd5e1; }
+    .nav-link { display: block; padding: 0.5rem 1rem; border-radius: 0.375rem; color: #cbd5e1; text-decoration: none; transition: background 0.2s; }
+    .nav-link:hover { background: #334155; color: #fff; }
+    .nav-link.active { background: #2563eb; color: #fff; }
+    h2 { color: #f8fafc; margin-top: 0; }
+    pre.mermaid { display: flex; justify-content: center; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+  <!-- Sidebar -->
+  <aside class="sidebar w-full md:w-72 md:h-screen md:sticky md:top-0 flex-shrink-0 p-6 overflow-y-auto">
+    <h1 class="text-xl font-bold text-white mb-2">Lost & Found Uninorte</h1>
+    <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">Diagramas de Arquitectura</p>
+    <nav class="space-y-1">
+      <a href="#diagrama-1" class="nav-link" onclick="setActive(this)">1. Arquitectura General</a>
+      <a href="#diagrama-2" class="nav-link" onclick="setActive(this)">2. Hexagonal / Clean Architecture</a>
+      <a href="#diagrama-3" class="nav-link" onclick="setActive(this)">3. Chain of Responsibility</a>
+      <a href="#diagrama-4" class="nav-link" onclick="setActive(this)">4. Outbox Pattern</a>
+      <a href="#diagrama-5" class="nav-link" onclick="setActive(this)">5. Visitor Pattern</a>
+    </nav>
+    <div class="mt-8 pt-6 border-t border-slate-700 text-xs text-slate-500">
+      <p>Basado en el análisis real del código fuente.</p>
+      <p class="mt-2">Nombres extraídos directamente de los archivos .ts y schema.prisma.</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+
+    <!-- Diagrama 1 -->
+    <section id="diagrama-1" class="diagram-container">
+      <h2 class="text-2xl font-semibold mb-4">Diagrama 1 — Arquitectura General</h2>
+      <pre class="mermaid">
+graph LR
+    subgraph "Docker Compose Network: lost_found_network"
+        DB[("PostgreSQL<br/>db:5432<br/>lost_found_uninorte")]
+        AUDIT_DB[("PostgreSQL<br/>audit-db:5432<br/>audit_log_db")]
+        RMQ[("RabbitMQ<br/>rabbitmq:5672/15672")]
+        CONSUL[("Consul<br/>consul:8500")]
+        CS["claims-service<br/>:3000"]
+        AUDIT["audit-service<br/>:3001"]
+        FE["frontend<br/>:5173 / :80"]
+    end
+
+    CS -->|"Prisma<br/>DATABASE_URL"| DB
+    AUDIT -->|"Prisma<br/>DATABASE_URL"| AUDIT_DB
+    CS -->|"AMQP<br/>RABBITMQ_URL"| RMQ
+    AUDIT -->|"AMQP<br/>RABBITMQ_URL"| RMQ
+    CS -->|"HTTP API<br/>Service Discovery"| CONSUL
+    FE -->|"REST API"| CS
+    FE -->|"REST API"| AUDIT
+
+    RMQ -->|"Queue: audit_events_queue<br/>Pattern: audit.event.created"| AUDIT
+
+    style CS fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style AUDIT fill:#581c87,stroke:#a855f7,color:#fff
+    style FE fill:#064e3b,stroke:#10b981,color:#fff
+    style DB fill:#7f1d1d,stroke:#ef4444,color:#fff
+    style AUDIT_DB fill:#7f1d1d,stroke:#ef4444,color:#fff
+    style RMQ fill:#713f12,stroke:#f59e0b,color:#fff
+    style CONSUL fill:#4338ca,stroke:#818cf8,color:#fff
+      </pre>
+      <div class="meta">
+        <p><strong>Archivos fuente de referencia:</strong> <code>docker-compose.yml</code>, <code>services/claims-service/src/infrastructure/app.module.ts</code>, <code>services/audit-service/src/infrastructure/messaging/audit-event.consumer.ts</code></p>
+        <p><strong>Patrones GoF aplicados:</strong> Message Broker (Event-Driven), Service Discovery (Consul), Database per Service.</p>
+      </div>
+    </section>
+
+    <!-- Diagrama 2 -->
+    <section id="diagrama-2" class="diagram-container">
+      <h2 class="text-2xl font-semibold mb-4">Diagrama 2 — Hexagonal / Clean Architecture (claims-service)</h2>
+      <pre class="mermaid">
+graph TB
+    subgraph "Domain (Implícito vía Prisma)"
+        DOM1[Claim]
+        DOM2[Evidence]
+        DOM3[Object]
+        DOM4[User]
+        DOM5[OutboxEvent]
+        DOM6[ClaimStatus / ObjectCategory / OutboxStatus / Role]
+    end
+
+    subgraph "Application Layer"
+        SVC1[ClaimsService]
+        SVC2[OutboxService]
+        HND0[BaseClaimHandler]
+        HND1[IdentityHandler]
+        HND2[AvailabilityHandler]
+        HND3[EvidenceMatchHandler]
+        HND4[ClaimVerificationException]
+        VIS0[IVisitor]
+        VIS1[IVisitable]
+        VIS2[ClaimElement]
+        VIS3[EvidenceElement]
+        VIS4[AuditVisitor]
+        VIS5[TextSimilarityVisitor]
+        FAC0[ClaimFactory]
+        FAC1[ElectronicClaimFactory]
+        FAC2[CommonClaimFactory]
+        FAC3[ClaimFactoryProvider]
+        DTO1[CreateClaimDto]
+        DTO2[UpdateClaimDto]
+        DTO3[EvidenceDto]
+        DEC1[AuditAction]
+        INT1[AuditLogInterceptor]
+    end
+
+    subgraph "Infrastructure Layer"
+        CTRL1[AppController]
+        CTRL2[ClaimsController]
+        CTRL3[ObjectsController]
+        PROX1[ClaimsServiceProxy]
+        ACL1[AntiCorruptionLayerService]
+        DISC1[ServiceDiscoveryService]
+        DISC2[ServiceDiscoveryModule]
+        OUT1[OutboxPublisherService]
+        PRIS1[PrismaService]
+        PRIS2[PrismaModule]
+        MSG1[ClientProxy 'AUDIT_SERVICE']
+        FIL1[GlobalExceptionFilter]
+        FIL2[ForbiddenExceptionFilter]
+    end
+
+    CTRL2 -->|"usa"| PROX1
+    CTRL2 -->|"usa"| ACL1
+    CTRL2 -->|"usa"| SVC1
+    CTRL2 -->|"instancia cadena"| HND1
+    CTRL2 -->|"instancia cadena"| HND2
+    CTRL2 -->|"instancia cadena"| HND3
+    CTRL3 -->|"usa"| SVC1
+    PROX1 -->|"delega"| SVC1
+    SVC1 -->|"usa"| FAC3
+    SVC1 -->|"usa"| SVC2
+    SVC1 -->|"persiste"| PRIS1
+    SVC2 -->|"persiste"| PRIS1
+    OUT1 -->|"lee publica"| SVC2
+    OUT1 -->|"emite"| MSG1
+    INT1 -->|"inyecta"| MSG1
+    HND1 -->|"extends"| HND0
+    HND2 -->|"extends"| HND0
+    HND3 -->|"extends"| HND0
+    VIS2 -->|"implements"| VIS1
+    VIS3 -->|"implements"| VIS1
+    VIS4 -->|"implements"| VIS0
+    VIS5 -->|"implements"| VIS0
+    FAC1 -->|"implements"| FAC0
+    FAC2 -->|"implements"| FAC0
+    FAC3 -->|"provee"| FAC1
+    FAC3 -->|"provee"| FAC2
+
+    style SVC1 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style SVC2 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style HND0 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style HND1 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style HND2 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style HND3 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS0 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS1 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS2 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS3 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS4 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style VIS5 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style FAC0 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style FAC1 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style FAC2 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style FAC3 fill:#1e3a8a,stroke:#3b82f6,color:#fff
+    style CTRL1 fill:#064e3b,stroke:#10b981,color:#fff
+    style CTRL2 fill:#064e3b,stroke:#10b981,color:#fff
+    style CTRL3 fill:#064e3b,stroke:#10b981,color:#fff
+    style PROX1 fill:#064e3b,stroke:#10b981,color:#fff
+    style ACL1 fill:#064e3b,stroke:#10b981,color:#fff
+    style OUT1 fill:#064e3b,stroke:#10b981,color:#fff
+    style DISC1 fill:#064e3b,stroke:#10b981,color:#fff
+    style PRIS1 fill:#064e3b,stroke:#10b981,color:#fff
+      </pre>
+      <div class="meta">
+        <p><strong>Archivos fuente de referencia:</strong> <code>services/claims-service/src/application/</code>, <code>services/claims-service/src/infrastructure/</code></p>
+        <p><strong>Patrones GoF aplicados:</strong> Chain of Responsibility, Visitor, Abstract Factory, Proxy, Outbox, Service Discovery, Anti-Corruption Layer (ACL).</p>
+      </div>
+    </section>
+
+    <!-- Diagrama 3 -->
+    <section id="diagrama-3" class="diagram-container">
+      <h2 class="text-2xl font-semibold mb-4">Diagrama 3 — Chain of Responsibility</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant CC as ClaimsController
+    participant PS as PrismaService
+    participant IH as IdentityHandler
+    participant AH as AvailabilityHandler
+    participant EMH as EvidenceMatchHandler
+    participant OS as OutboxService
+
+    Admin->>CC: POST /claims/:id/verify (x-user-role: ADMIN)
+    CC->>PS: findUnique({ id, include: {user, object, evidences} })
+    PS-->>CC: claim
+    CC->>CC: if status != PENDING -> BadRequestException
+    CC->>IH: new IdentityHandler(prisma)
+    CC->>AH: new AvailabilityHandler(prisma)
+    CC->>EMH: new EvidenceMatchHandler()
+    CC->>IH: setNext(AH)
+    IH->>IH: nextHandler = AH
+    CC->>AH: setNext(EMH)
+    AH->>AH: nextHandler = EMH
+    CC->>IH: handle({ claim })
+
+    alt IdentityHandler Success
+        IH->>PS: user.findUnique({ id: claim.userId })
+        PS-->>IH: user exists
+        IH->>AH: super.handle(context)
+    else IdentityHandler Failure
+        IH->>IH: throw ClaimVerificationException
+        Note right of IH: "El usuario con ID {id} no existe<br/>en los registros oficiales."
+    end
+
+    alt AvailabilityHandler Success
+        AH->>PS: claim.findFirst({ objectId, status: APPROVED, not: userId })
+        PS-->>AH: no approvedByOtherUser
+        AH->>EMH: super.handle(context)
+    else AvailabilityHandler Failure
+        AH->>AH: throw ClaimVerificationException
+        Note right of AH: "El objeto ya fue reclamado<br/>exitosamente por otra persona."
+    end
+
+    alt EvidenceMatchHandler Success
+        EMH->>EMH: claim.evidences.some(validTypes.includes(e.type))
+        EMH->>EMH: hasValidEvidence == true
+        EMH->>EMH: return true
+    else EvidenceMatchHandler Failure
+        EMH->>EMH: throw ClaimVerificationException
+        Note right of EMH: "La reclamación no contiene evidencias<br/>válidas para la categoría {category}.<br/>Se requiere al menos una de: {validTypes}."
+    end
+
+    EMH-->>AH: true
+    AH-->>IH: true
+    IH-->>CC: true
+    CC->>CC: $transaction(async tx => { ... })
+    CC->>PS: tx.claim.update({ status: APPROVED })
+    CC->>OS: enqueueAuditEvent(tx, { action: 'CLAIM_VERIFIED', result: 'SUCCESS' })
+    OS-->>CC: outboxEvent created
+    PS-->>CC: approvedClaim
+    CC-->>Admin: { message: "Reclamación verificada...", claim }
+
+    Note over CC,EMH: Si cualquier handler falla:<br/>CC catch error -> getRejectionDetails()<br/>tx.claim.update({ status: REJECTED })<br/>enqueueAuditEvent(tx, { result: 'FAILURE' })<br/>throw HttpException(CONFLICT)
+      </pre>
+      <div class="meta">
+        <p><strong>Archivos fuente de referencia:</strong> <code>services/claims-service/src/infrastructure/controllers/claims.controller.ts</code> (líneas 144-253), <code>services/claims-service/src/application/handlers/</code></p>
+        <p><strong>Patrones GoF aplicados:</strong> Chain of Responsibility (GoF Behavioral), Template Method (BaseClaimHandler.handle).</p>
+      </div>
+    </section>
+
+    <!-- Diagrama 4 -->
+    <section id="diagrama-4" class="diagram-container">
+      <h2 class="text-2xl font-semibold mb-4">Diagrama 4 — Outbox Pattern</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Client
+    participant CS as ClaimsService
+    participant PS as PrismaService
+    participant OS as OutboxService
+    participant OP as OutboxPublisherService
+    participant RMQ as RabbitMQ<br/>Queue: audit_events_queue
+    participant AC as AuditEventConsumer
+    participant ALS as AuditLogService
+    participant ALF as AuditLogFactory
+    participant PR as PrismaAuditLogRepository
+    participant ADB as AuditDB
+
+    Client->>CS: createClaim() / updateClaim() / removeClaim()
+    CS->>PS: prisma.$transaction(async tx => { ... })
+    PS->>PS: tx.claim.create / update / delete
+    CS->>OS: enqueueAuditEvent(tx, AuditEventPayload)
+    OS->>PS: tx.outboxEvent.create({<br/>  topic: 'audit.event.created',<br/>  payload: Json,<br/>  status: 'PENDING'<br/>})
+    PS-->>OS: OutboxEvent
+    PS-->>CS: Transaction Committed
+    CS-->>Client: Claim / Object Result
+
+    Note over OP,RMQ: OnModuleInit: setInterval(5000ms)
+    OP->>OS: reserveBatch(20)
+    OS->>PS: $queryRaw UPDATE "OutboxEvent"<br/>SET status = 'PROCESSING'<br/>WHERE status IN ('PENDING','FAILED')<br/>OR (status='PROCESSING' AND nextAttemptAt < NOW() - 5min)<br/>RETURNING *
+    PS-->>OS: events[]
+    OS-->>OP: events[]
+
+    loop Cada evento
+        OP->>OP: client.emit('audit.event.created', payload)
+        OP->>RMQ: Publish audit.event.created
+        alt Éxito
+            OP->>OS: markPublished(event.id)
+            OS->>PS: outboxEvent.update({ status: 'PUBLISHED', publishedAt: now() })
+        else Fallo
+            OP->>OS: markFailed(id, retryCount, errorMessage)
+            OS->>PS: outboxEvent.update({<br/>  status: 'FAILED',<br/>  retryCount+1,<br/>  nextAttemptAt: delay exponencial,<br/>  lastError<br/>})
+        end
+    end
+
+    RMQ->>AC: Deliver audit.event.created
+    AC->>ALS: processAuditEvent(eventData)
+    ALS->>ALF: create(eventData, previousHash)
+    ALF->>ALF: computeHash(SHA-256) + canonicalizeForHash
+    ALF-->>ALS: AuditLogEntryProps
+    ALS->>PR: appendWithChain(builder)
+    PR->>ADB: prisma.$transaction + tx.auditLog.create({...hash...})
+    ADB-->>PR: AuditLog persisted
+    PR-->>ALS: OK
+    ALS-->>AC: Event processed
+      </pre>
+      <div class="meta">
+        <p><strong>Archivos fuente de referencia:</strong> <code>services/claims-service/src/application/services/outbox.service.ts</code>, <code>services/claims-service/src/infrastructure/outbox-publisher.service.ts</code>, <code>services/claims-service/prisma/schema.prisma</code> (model OutboxEvent), <code>services/audit-service/src/infrastructure/messaging/audit-event.consumer.ts</code></p>
+        <p><strong>Patrones GoF / Arquitectura aplicados:</strong> Outbox Pattern (Transaction Log Tailing), Retry with Exponential Backoff, Event-Driven Architecture, Chain of Responsibility (Audit Hash Chain).</p>
+      </div>
+    </section>
+
+    <!-- Diagrama 5 -->
+    <section id="diagrama-5" class="diagram-container">
+      <h2 class="text-2xl font-semibold mb-4">Diagrama 5 — Visitor Pattern</h2>
+      <pre class="mermaid">
+classDiagram
+    direction TB
+    class IVisitor {
+        <<interface>>
+        +visitClaim(claimElement: ClaimElement): void
+        +visitEvidence(evidenceElement: EvidenceElement): void
+    }
+
+    class IVisitable {
+        <<interface>>
+        +accept(visitor: IVisitor): void
+    }
+
+    class ClaimElement {
+        +claim: ClaimWithRelations
+        +accept(visitor: IVisitor): void
+    }
+
+    class EvidenceElement {
+        +evidence: Evidence
+        +relatedObject: PrismaObject
+        +accept(visitor: IVisitor): void
+    }
+
+    class AuditVisitor {
+        -auditReport: string[]
+        +visitClaim(claimElement: ClaimElement): void
+        +visitEvidence(evidenceElement: EvidenceElement): void
+        +getReport(): string
+    }
+
+    class TextSimilarityVisitor {
+        -similarityScores: Array~ScoreEntry~
+        +visitClaim(_claimElement: ClaimElement): void
+        +visitEvidence(evidenceElement: EvidenceElement): void
+        +getScores(): Array~ScoreEntry~
+        -calculateSimilarity(text1: string, text2: string): number
+        -tokenize(text: string): string[]
+    }
+
+    IVisitable <|.. ClaimElement
+    IVisitable <|.. EvidenceElement
+    IVisitor <|.. AuditVisitor
+    IVisitor <|.. TextSimilarityVisitor
+    ClaimElement --> EvidenceElement : "crea en accept()"
+    ClaimsController ..> ClaimElement : "new ClaimElement(claim)"
+    ClaimsController ..> AuditVisitor : "new AuditVisitor()"
+    ClaimsController ..> TextSimilarityVisitor : "new TextSimilarityVisitor()"
+    ClaimsController ..> IVisitable : "claimElement.accept(visitor)"
+      </pre>
+      <div class="meta">
+        <p><strong>Archivos fuente de referencia:</strong> <code>services/claims-service/src/application/visitors/visitor.interface.ts</code>, <code>services/claims-service/src/application/visitors/elements/claim.element.ts</code>, <code>services/claims-service/src/application/visitors/audit.visitor.ts</code>, <code>services/claims-service/src/application/visitors/text-similarity.visitor.ts</code>, <code>services/claims-service/src/infrastructure/controllers/claims.controller.ts</code> (líneas 350-386, método audit)</p>
+        <p><strong>Patrones GoF aplicados:</strong> Visitor (GoF Behavioral), Composite (ClaimElement contiene EvidenceElements en accept).</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Initialize Mermaid with dark theme
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e293b',
+        primaryTextColor: '#f1f5f9',
+        primaryBorderColor: '#475569',
+        lineColor: '#94a3b8',
+        secondaryColor: '#0f172a',
+        tertiaryColor: '#1e3a8a'
+      },
+      sequence: {
+        actorMargin: 60,
+        diagramMarginX: 20,
+        diagramMarginY: 20
+      },
+      class: {
+        useMaxWidth: true
+      }
+    });
+
+    // Active nav link on scroll
+    function setActive(el) {
+      document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+      if (el) el.classList.add('active');
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          const link = document.querySelector(`a[href="#${id}"]`);
+          if (link) setActive(link);
+        }
+      });
+    }, { root: null, rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+    document.querySelectorAll('section[id]').forEach(sec => observer.observe(sec));
+  </script>
+</body>
+</html>

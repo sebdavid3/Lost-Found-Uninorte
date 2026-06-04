@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ObjectCategory {
+  ELECTRONIC
+  COMMON
+  CLOTHING
+  STATIONERY
+  DOCUMENT
+  ACCESSORY
+  OTHER
+}
+
+model Object {
+  id              String         @id @default(uuid())
+  name            String
+  description     String
+  photo           String
+  category        ObjectCategory
+  location        String
+  storageLocation String?
+  status          String         @default("AVAILABLE")
+  foundAt         DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([category])
+  @@index([location])
+  @@index([foundAt])
+}

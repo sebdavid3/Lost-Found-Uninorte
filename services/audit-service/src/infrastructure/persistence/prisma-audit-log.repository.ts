@@ -115,9 +115,11 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
   }
 
   async findAllOrdered(): Promise<AuditLogEntryProps[]> {
-    const logs = await this.prisma.auditLog.findMany({
-      orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
-    });
-    return logs as unknown as AuditLogEntryProps[];
+    return this.prisma.$transaction(async (tx) => {
+      const logs = await tx.auditLog.findMany({
+        orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
+      });
+      return logs as unknown as AuditLogEntryProps[];
+    }, { isolationLevel: 'Serializable' });
   }
 }

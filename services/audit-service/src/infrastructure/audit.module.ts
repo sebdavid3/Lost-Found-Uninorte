@@ -21,5 +21,8 @@ import { AUDIT_LOG_REPOSITORY } from '../domain/ports/audit-log.repository';
       useClass: PrismaAuditLogRepository,
     },
   ],
+  exports: [
+    PrismaService,
+  ],
 })
 export class AuditModule {}
